@@ -4,147 +4,55 @@
   "category": "integrations",
   "description": "This flow step will send generic request to googledrive",
   "inputs": [
-    {
-      "label": "Url",
-      "name": "url",
-      "description": "The method and path to which this endpoint is to send requests in a generic way.",
-      "type": "urlParams",
-      "required": "true",
-      "options": {
-        "type": "dropDown",
-        "possibleValues": [
-            {
-              "label": "GET /about"
-            },
-            {
-              "label": "GET /changes"
-            },
-            {
-              "label": "GET /changes/startPageToken"
-            },
-            {
-              "label": "GET /files/{fileId}/comments"
-            },
-            {
-              "label": "GET /files/{fileId}/comments/{commentId}"
-            },
-            {
-              "label": "GET /drives"
-            },
-            {
-              "label": "GET /drives/{driveId}"
-            },
-            {
-              "label": "GET /files/{fileId}/export"
-            },
-            {
-              "label": "GET /files/generateIds"
-            },
-            {
-              "label": "GET /files"
-            },
-            {
-              "label": "GET /files/{fileId}"
-            },
-            {
-              "label": "GET /files/{fileId}/listLabels"
-            },
-            {
-              "label": "GET /files/{fileId}/permissions"
-            },
-            {
-              "label": "GET /files/{fileId}/permissions/{permissionId}"
-            },
-            {
-              "label": "GET /files/{fileId}/comments/{commentId}/replies"
-            },
-            {
-              "label": "GET /files/{fileId}/comments/{commentId}/replies/{replyId}"
-            },
-            {
-              "label": "GET /files/{fileId}/revisions"
-            },
-            {
-              "label": "GET /files/{fileId}/revisions/{revisionId}"
-            },
-            {
-              "label": "POST /channels/stop"
-            },
-            {
-              "label": "POST /changes/watch"
-            },
-            {
-              "label": "POST /files/{fileId}/comments"
-            },
-            {
-              "label": "POST /drives"
-            },
-            {
-              "label": "POST /drives/{driveId}/hide"
-            },
-            {
-              "label": "POST /drives/{driveId}/unhide"
-            },
-            {
-              "label": "POST /files/{fileId}/copy"
-            },
-            {
-              "label": "POST /files"
-            },
-            {
-              "label": "POST /files/{fileId}/modifyLabels"
-            },
-            {
-              "label": "POST /files/{fileId}/watch"
-            },
-            {
-              "label": "POST /files/{fileId}/permissions"
-            },
-            {
-              "label": "POST /files/{fileId}/comments/{commentId}/replies"
-            },
-            {
-              "label": "DELETE /files/{fileId}/comments/{commentId}"
-            },
-            {
-              "label": "DELETE /drives/{driveId}"
-            },
-            {
-              "label": "DELETE /files/{fileId}"
-            },
-            {
-              "label": "DELETE /files/trash"
-            },
-            {
-              "label": "DELETE /files/{fileId}/permissions/{permissionId}"
-            },
-            {
-              "label": "DELETE /files/{fileId}/comments/{commentId}/replies/{replyId}"
-            },
-            {
-              "label": "DELETE /files/{fileId}/revisions/{revisionId}"
-            },
-            {
-              "label": "PATCH /files/{fileId}/comments/{commentId}"
-            },
-            {
-              "label": "PATCH /drives/{driveId}"
-            },
-            {
-              "label": "PATCH /files/{fileId}"
-            },
-            {
-              "label": "PATCH /files/{fileId}/permissions/{permissionId}"
-            },
-            {
-              "label": "PATCH /files/{fileId}/comments/{commentId}/replies/{replyId}"
-            },
-            {
-              "label": "PATCH /files/{fileId}/revisions/{revisionId}"
-            }
-        ]
-      }
-    },
+      {
+          "label": "Method",
+          "name": "method",
+          "description": "The method to which this service will send the request.",
+          "type": "dropDown",
+          "multiplicity": "one",
+          "required": "true",
+          "defaultValue": "get",
+          "options": {
+              "possibleValues": [
+                  {
+                      "label": "GET",
+                      "name": "get"
+                  },
+                  {
+                      "label": "POST",
+                      "name": "post"
+                  },
+                  {
+                      "label": "PUT",
+                      "name": "put"
+                  },
+                  {
+                      "label": "DELETE",
+                      "name": "delete"
+                  },
+                  {
+                      "label": "PATCH",
+                      "name": "patch"
+                  },
+                  {
+                      "label": "OPTIONS",
+                      "name": "options"
+                  },
+                  {
+                      "label": "HEAD",
+                      "name": "head"
+                  }
+              ],
+              "allowContextSelector": "false"
+          }
+      },
+      {
+          "label": "Path",
+          "name": "path",
+          "description": "The URL to which this service will send the request.",
+          "type": "urlParams",
+          "required": "true"
+      },
     {
       "label": "Headers",
       "name": "headers",

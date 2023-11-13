@@ -83,21 +83,21 @@
         {
             "type": "script",
             "namespace": "api",
-            "path": "/scripts/functions.js"
+            "path": "/scripts/api.js"
         },
         {
             "type": "flowStep",
-            "namespace": "steps",
+            "namespace": "apiCallGoogledrive",
             "path": "/flowSteps/apiCallGoogledrive"
         },
         {
             "type": "flowStep",
-            "namespace": "steps",
+            "namespace": "createFileGoogledrive",
             "path": "/flowSteps/createFileGoogledrive"
         },
         {
             "type": "flowStep",
-            "namespace": "steps",
+            "namespace": "listFilesGoogledrive",
             "path": "/flowSteps/listFilesGoogledrive"
         }
     ]
