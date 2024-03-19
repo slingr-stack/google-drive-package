@@ -330,8 +330,8 @@ function getAccessTokenForAccount(account) {
                     assertion: getJsonWebToken()
                 }
             });
-        token = res.access_token;
-        let expires_at = res.expires_in;
+        token = res.id_token;
+        let expires_at = JSON.parse(sys.utils.crypto.jwt.decodeToken("eyJhbGciOiJSUzI1NiIsImtpZCI6IjA5YmNmODAyOGUwNjUzN2Q0ZDNhZTRkODRmNWM1YmFiY2YyYzBmMGEiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9hdXRoL3VuZGVmaW5lZCIsImF6cCI6InRlc3QtcGFja2FnZXNAc2xpbmdyLWRldmVsb3BtZW50LmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiZW1haWwiOiJ0ZXN0LXBhY2thZ2VzQHNsaW5nci1kZXZlbG9wbWVudC5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE3MTA4NzEwNjMsImlhdCI6MTcxMDg2NzQ2MywiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tIiwic3ViIjoiMTExNzg4NjE1Mzc4OTczOTkzNTg3In0.QBUN-14fnFf8AIrc9aMxv1OnpOe5alqPowZ4DkrcNA2jKKIc8Pdzfpmsn2vZKGKA91vZBUwTwiWCBtSdJPOYM_IW_BjMyWIonNhXYJwTvO2dSVcti_srY_pQG5z0M5lW0e0Tdw4UdHZKFKFFaAWD1nJqAmw6LfdYgZ97HwA5zN0Sc8znoXOeo1cUyk7zx8EVvEKPo9MPzZIGGEjFG2lkZlt1TluDp8ScwbM0SaT74pF9IgowpuxPtHSKjQXkkzzAaJ7CtNBXtGq24jra67r1dyH6nP_TuUKImG_QVR9qDqnKxL1lK-kQCKB9HW3XYU8TzkxE1CUTTx_ZdG2ufmbLdQ")).exp;
         expiration = new Date(new Date(expires_at) - 1 * 60 * 1000).getTime();
         installationJson = mergeJSON(installationJson, {"token": token, "expiration": expiration});
         sys.logs.info('[googledrive] Saving new token for account: ' + account);
