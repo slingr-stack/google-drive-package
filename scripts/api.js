@@ -344,13 +344,7 @@ function getJsonWebToken() {
     let currentTime = new Date().getTime();
     let futureTime = new Date(currentTime + ( 10 * 60 * 1000)).getTime();
     let scopeProp= config.get("scope");
-    let scopes;
-    if (!!scopeProp) {
-        scopes = scopeProp.map(function (s) {
-            return "https://www.googleapis.com/auth/" + s;
-        });
-    }
-    let scopesGlobal = scopes.join(" ");
+    let scopesGlobal = "https://www.googleapis.com/auth/"+scopeProp
     return sys.utils.crypto.jwt.generate(
         {
             iss: config.get("serviceAccountEmail"),
