@@ -35,7 +35,7 @@
             "name": "scope",
             "description": "The scope of access you are requesting, which may include multiple space-separated values.",
             "required": "true",
-            "type": "text",
+            "type": "text"
         },
         {
             "label": "State",
