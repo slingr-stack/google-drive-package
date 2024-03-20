@@ -9,7 +9,7 @@
     <tbody>
     <tr>
         <td>Google Drive package</td>
-        <td>November 13, 2023</td>
+        <td>March 20, 2024</td>
         <td>Detailed description of the API of the Google Drive package.</td>
     </tr>
     </tbody>
@@ -17,14 +17,11 @@
 
 # Overview
 
-The Google Drive endpoint is a package
-which means that all users in the same organization will share the same connection to the package.
-
-This endpoint allows direct access to the [Google Drive API](https://developers.google.com/drive/api/reference/rest/v3),
-through a service account; however, it provides shortcuts and helpers for most common use cases. 
+This package allows direct access to the [Google Drive API](https://developers.google.com/drive/api/reference/rest/v3),
+through a Client ID OAuth 2.0 account; however, it provides shortcuts and helpers for most common use cases. 
 Also, you can see [Google Drive Documentation](https://developers.google.com/drive/api/guides/about-files) for more information.
 
-Some features available in this endpoint are:
+Some features available in this package are:
 
 - Authentication and authorization
 - Direct access to the Google Drive API
@@ -33,26 +30,20 @@ Some features available in this endpoint are:
 
 ## Configuration
 
-To use the Google Drive package you must create an app in the [Google Developer Console](https://console.developers.google.com)
+To use the Google Drive package, 
+you must create an app in the [Google Developer Console](https://console.developers.google.com)
 by following these instructions:
 
 - Create a Google Cloud project for your Google Drive app.
 - Access to Google Developer Console
 - Access to `API Manager > Library`. Enable `Drive API`.
-- Create a service account.
-- Download the JSON file with the service account credentials to get the service account private key.
-
-### Service account email
-
-As explained above, this value comes from the credentials file.
+- Create a Client ID OAuth 2.0 account
+- Copy the Client ID and Client Secret of the package.
 
 ### OAuth Scopes
 
-The scopes the service account have access to. Take into account if any scope is selected to which the service account does not have access the endpoint will fail to be authorized to make any requests.
-
-### Private Key
-
-As explained above, this value also comes from the credential file.
+Take into account if any scope is selected to which the service account does not have access the package 
+will fail to be authorized to make any requests.
 
 # Javascript API
 

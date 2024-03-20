@@ -5,71 +5,58 @@
         {
             "type": "service",
             "name": "http",
-            "version": "v1.2.6",
+            "version": "v1.5.4",
             "instanceId": "shared"
+        },
+        {
+            "type": "package",
+            "name": "oauth",
+            "version": "v1.0.24"
         }
     ],
+    "configurationBuilder": "/configurationBuilder.js",
     "configuration": [
         {
-            "name": "serviceAccountEmail",
-            "label": "Service Account Email",
-            "description": "The email from service account created",
+            "label": "Client Id",
+            "name": "clientId",
+            "description": "The ID for your client application registered with the API provider.",
+            "required": "true",
+            "type": "text"
+        },
+        {
+            "label": "Client Secret",
+            "name": "clientSecret",
+            "description": "The client secret given to you by the API provider",
+            "required": "true",
+            "type": "text"
+        },
+        {
+            "label": "Scope",
+            "name": "scope",
+            "description": "The scope of access you are requesting, which may include multiple space-separated values.",
+            "required": "true",
             "type": "text",
-            "required": true
+            "defaultValue": "drive"
         },
         {
-            "name": "privateKey",
-            "label": "Private Key",
-            "description": "The private key associated to the service account",
-            "type": "password",
-            "required": true
+            "label": "State",
+            "name": "state",
+            "description": "An opaque value to prevent cross-site request forgery.",
+            "type": "text"
         },
         {
-            "label": "Auth Scopes",
-            "name": "authScopes",
-            "description": "The auth scopes the service accounts have, if you select scopes that don't belong to your service account it will lead to authorization errors",
-            "type": "dropDown",
-            "multiplicity": "one",
-            "defaultValue": [
-                "drive"
-            ],
-            "typeOptions": {
-                "allowCustom": true,
-                "possibleValues": [
-                    {
-                        "label": "Drive (Complete access)",
-                        "name": "drive"
-                    },
-                    {
-                        "label": "Drive - Own Data (See, create, and delete its own configuration data in your Google Drive)",
-                        "name": "drive.appdata"
-                    },
-                    {
-                        "label": "Drive - Files App (Only the specific Google Drive files you use with this app)",
-                        "name": "drive.file"
-                    },
-                    {
-                        "label": "Drive Metadata (View and manage metadata of files in your Google Drive)",
-                        "name": "drive.metadata"
-                    },
-                    {
-                        "label": "Drive Metadata ReadOnly (See information about your Google Drive files)",
-                        "name": "drive.metadata.readonly"
-                    },
-                    {
-                        "label": "Drive - Google Photos (View the photos, videos and albums in your Google Photos)",
-                        "name": "drive.photos.readonly"
-                    },
-                    {
-                        "label": "Drive ReadOnly (See and download all your Google Drive files)",
-                        "name": "drive.readonly"
-                    },
-                    {
-                        "label": "Drive Scripts (Modify your Google Apps Script scripts' behavior)",
-                        "name": "drive.scripts"
-                    }
-                ]
-            }
+            "name": "oauthCallback",
+            "label": "OAuth callback",
+            "description": "The OAuth callback to configure in your Google Docs App",
+            "type": "label",
+            "value": "config.AUTH_CALLBACK_URL+'/authCallback'"
+        },
+        {
+            "name": "webhooksUrl",
+            "label": "Webhooks URL",
+            "description": "The URL to configure in webhooks of your Google Docs App",
+            "type": "label",
+            "value": "config.WEBHOOK_URL"
         },
         {
             "name": "GOOGLEDRIVE_API_BASE_URL",

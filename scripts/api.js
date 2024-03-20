@@ -25,6 +25,8 @@ function handleRequestWithRetry(requestFn, options, callbackData, callbacks) {
         return requestFn(options, callbackData, callbacks);
     } catch (error) {
         sys.logs.info("[googledrive] Handling request "+JSON.stringify(error));
+        dependencies.oauth.functions.refreshToken('googledrive:refreshToken');
+        return requestFn(setAuthorization(options), callbackData, callbacks);
     }
 }
 
@@ -37,6 +39,27 @@ function createWrapperFunction(requestFn) {
 for (let key in httpDependency) {
     if (typeof httpDependency[key] === 'function') httpService[key] = createWrapperFunction(httpDependency[key]);
 }
+
+/**
+ * Retrieves the access token.
+ *
+ * @return {void} The access token refreshed on the storage.
+ */
+exports.getAccessToken = function () {
+    sys.logs.info("[googledrive] Getting access token from oauth");
+    return dependencies.oauth.functions.connectUser('googledrive:userConnected');
+}
+
+/**
+ * Removes the access token from the oauth.
+ *
+ * @return {void} The access token removed on the storage.
+ */
+exports.removeAccessToken = function () {
+    sys.logs.info("[googledrive] Removing access token from oauth");
+    return dependencies.oauth.functions.disconnectUser('googledrive:disconnectUser');
+}
+
 
 /****************************************************
  Public API - Generic Functions
@@ -280,6 +303,7 @@ let GoogleDrive = function (options) {
     options = options || {};
     options= setApiUri(options);
     options= setRequestHeaders(options);
+    options = setAuthorization(options);
     return options;
 }
 
@@ -295,67 +319,30 @@ function setApiUri(options) {
     return options;
 }
 
+
 function setRequestHeaders(options) {
     let headers = options.headers || {};
-
-    sys.logs.debug('[googledrive] Set header Bearer');
     headers = mergeJSON(headers, {"Content-Type": "application/json"});
-    headers = mergeJSON(headers, {"Authorization": "Bearer "+getAccessTokenForAccount()});
-
-    if (headers.Accept === undefined || headers.Accept === null || headers.Accept === "") {
-        sys.logs.debug('[googledrive] Set header accept');
-        headers = mergeJSON(headers, {"Accept": "application/json"});
-    }
 
     options.headers = headers;
     return options;
 }
 
-function getAccessTokenForAccount(account) {
-    account = account || "account";
-    sys.logs.info('[googledrive] Getting access token for account: '+account);
-    let installationJson = sys.storage.get('installationInfo-GoogleDrive---'+account) || {id: null};
-    let token = installationJson.token || null;
-    let expiration = installationJson.expiration || 0;
-    if (!token || expiration < new Date().getTime()) {
-        sys.logs.info('[googledrive] Access token is expired or not found. Getting new token');
-        let res = httpService.post(
-            {
-                url: "https://oauth2.googleapis.com/token",
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: {
-                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                    assertion: getJsonWebToken()
-                }
-            });
-        token = res.id_token;
-        let expires_at = JSON.parse(sys.utils.crypto.jwt.decodeToken("eyJhbGciOiJSUzI1NiIsImtpZCI6IjA5YmNmODAyOGUwNjUzN2Q0ZDNhZTRkODRmNWM1YmFiY2YyYzBmMGEiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9hdXRoL3VuZGVmaW5lZCIsImF6cCI6InRlc3QtcGFja2FnZXNAc2xpbmdyLWRldmVsb3BtZW50LmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiZW1haWwiOiJ0ZXN0LXBhY2thZ2VzQHNsaW5nci1kZXZlbG9wbWVudC5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJleHAiOjE3MTA4NzEwNjMsImlhdCI6MTcxMDg2NzQ2MywiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tIiwic3ViIjoiMTExNzg4NjE1Mzc4OTczOTkzNTg3In0.QBUN-14fnFf8AIrc9aMxv1OnpOe5alqPowZ4DkrcNA2jKKIc8Pdzfpmsn2vZKGKA91vZBUwTwiWCBtSdJPOYM_IW_BjMyWIonNhXYJwTvO2dSVcti_srY_pQG5z0M5lW0e0Tdw4UdHZKFKFFaAWD1nJqAmw6LfdYgZ97HwA5zN0Sc8znoXOeo1cUyk7zx8EVvEKPo9MPzZIGGEjFG2lkZlt1TluDp8ScwbM0SaT74pF9IgowpuxPtHSKjQXkkzzAaJ7CtNBXtGq24jra67r1dyH6nP_TuUKImG_QVR9qDqnKxL1lK-kQCKB9HW3XYU8TzkxE1CUTTx_ZdG2ufmbLdQ")).exp;
-        expiration = new Date(new Date(expires_at) - 1 * 60 * 1000).getTime();
-        installationJson = mergeJSON(installationJson, {"token": token, "expiration": expiration});
-        sys.logs.info('[googledrive] Saving new token for account: ' + account);
-        sys.storage.replace('installationInfo-GoogleDrive---'+account, installationJson);
-    }
-    return token;
-}
+function setAuthorization(options) {
+    let authorization = options.authorization || {};
+    sys.logs.debug('[googledrive] setting authorization');
+    let pkgConfig = config.get();
+    sys.logs.debug('[googledrive] config: '+JSON.stringify(pkgConfig));
+    sys.logs.debug('[googledrive] config id: '+JSON.stringify(pkgConfig.id));
 
-function getJsonWebToken() {
-    let currentTime = new Date().getTime();
-    let futureTime = new Date(currentTime + ( 10 * 60 * 1000)).getTime();
-    let scopeProp= config.get("scope");
-    let scopesGlobal = "https://www.googleapis.com/auth/"+scopeProp
-    return sys.utils.crypto.jwt.generate(
-        {
-            iss: config.get("serviceAccountEmail"),
-            aud: GOOGLEWORKSPACE_API_AUTH_URL,
-            scope: scopesGlobal,
-            iat: currentTime,
-            exp: futureTime
-        },
-        config.get("privateKey"),
-        "RS256"
-    )
+    authorization = mergeJSON(authorization, {
+        type: "oauth2",
+        accessToken: sys.storage.get(
+            'installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true}),
+        headerPrefix: "Bearer"
+    });
+    options.authorization = authorization;
+    return options;
 }
 
 function mergeJSON (json1, json2) {
