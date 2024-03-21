@@ -31,16 +31,23 @@
             "type": "text"
         },
         {
+            "label": "Scope",
+            "name": "scope",
+            "description": "The scopes to configure in your Google Drive App",
+            "required": "true",
+            "type": "text"
+        },
+        {
             "name": "oauthCallback",
             "label": "OAuth callback",
-            "description": "The OAuth callback to configure in your Google Docs App",
+            "description": "The OAuth callback to configure in your Google Drive App",
             "type": "label",
             "value": "config.AUTH_CALLBACK_URL+'/authCallback'"
         },
         {
             "name": "webhooksUrl",
             "label": "Webhooks URL",
-            "description": "The URL to configure in webhooks of your Google Docs App",
+            "description": "The URL to configure in webhooks of your Google Drive App",
             "type": "label",
             "value": "config.WEBHOOK_URL"
         },
@@ -55,12 +62,12 @@
         {
             "label": "Webhook",
             "name": "webhook",
-            "description": "Happens when Google Docs sends a webhook to the package."
+            "description": "Happens when Google Drive sends a webhook to the package."
         },
         {
-            "label": "User connected to Google Docs",
+            "label": "User connected to Google Drive",
             "name": "userConnected",
-            "description": "Happens when a user successfully connects to Google Docs."
+            "description": "Happens when a user successfully connects to Google Drive."
         }
     ],
     "metadata": [

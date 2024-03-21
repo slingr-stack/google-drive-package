@@ -12,6 +12,7 @@ let configurationBuilder = function (config) {
         accessTokenUrl: 'https://oauth2.googleapis.com/token',
         clientId: config.clientId,
         clientSecret: config.clientSecret,
+        scope: config.scope,
         oauthCallback: config.oauthCallback
 	};
     return config;
