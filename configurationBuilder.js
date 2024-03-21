@@ -13,6 +13,7 @@ let configurationBuilder = function (config) {
         clientId: config.clientId,
         clientSecret: config.clientSecret,
         scope: config.scope,
+        state: config.state,
         oauthCallback: config.oauthCallback
 	};
     return config;

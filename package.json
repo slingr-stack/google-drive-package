@@ -33,11 +33,17 @@
         {
             "label": "Scope",
             "name": "scope",
-            "description": "The scopes to configure in your Google Drive App",
+            "description": "The scope of access you are requesting, which may include multiple space-separated values.",
             "required": "true",
             "type": "text"
         },
         {
+            "label": "State",
+            "name": "state",
+            "description": "An opaque value to prevent cross-site request forgery.",
+            "type": "text"
+        }
+        ,{
             "name": "oauthCallback",
             "label": "OAuth callback",
             "description": "The OAuth callback to configure in your Google Drive App",
