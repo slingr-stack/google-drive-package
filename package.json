@@ -5,7 +5,7 @@
         {
             "type": "service",
             "name": "http",
-            "version": "v1.5.4",
+            "version": "v1.5.3",
             "instanceId": "shared"
         },
         {
@@ -31,19 +31,6 @@
             "type": "text"
         },
         {
-            "label": "Scope",
-            "name": "scope",
-            "description": "The scope of access you are requesting, which may include multiple space-separated values.",
-            "required": "true",
-            "type": "text"
-        },
-        {
-            "label": "State",
-            "name": "state",
-            "description": "An opaque value to prevent cross-site request forgery.",
-            "type": "text"
-        },
-        {
             "name": "oauthCallback",
             "label": "OAuth callback",
             "description": "The OAuth callback to configure in your Google Docs App",
@@ -64,27 +51,23 @@
             "value": "https://www.googleapis.com/drive/v3"
         }
     ],
-    "events": [],
+    "events": [
+        {
+            "label": "Webhook",
+            "name": "webhook",
+            "description": "Happens when Google Docs sends a webhook to the package."
+        },
+        {
+            "label": "User connected to Google Docs",
+            "name": "userConnected",
+            "description": "Happens when a user successfully connects to Google Docs."
+        }
+    ],
     "metadata": [
         {
             "type": "script",
             "namespace": "api",
             "path": "/scripts/api.js"
-        },
-        {
-            "type": "flowStep",
-            "namespace": "apiCallGoogledrive",
-            "path": "/flowSteps/apiCallGoogledrive"
-        },
-        {
-            "type": "flowStep",
-            "namespace": "createFileGoogledrive",
-            "path": "/flowSteps/createFileGoogledrive"
-        },
-        {
-            "type": "flowStep",
-            "namespace": "listFilesGoogledrive",
-            "path": "/flowSteps/listFilesGoogledrive"
         }
     ]
 }

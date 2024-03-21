@@ -290,12 +290,6 @@ function isObject (obj) {
 let stringType = Function.prototype.call.bind(Object.prototype.toString)
 
 /****************************************************
- Constants
- ****************************************************/
-
-const GOOGLEWORKSPACE_API_AUTH_URL = "https://oauth2.googleapis.com/token";
-
-/****************************************************
  Configurator
  ****************************************************/
 
@@ -323,7 +317,6 @@ function setApiUri(options) {
 function setRequestHeaders(options) {
     let headers = options.headers || {};
     headers = mergeJSON(headers, {"Content-Type": "application/json"});
-
     options.headers = headers;
     return options;
 }
@@ -331,10 +324,6 @@ function setRequestHeaders(options) {
 function setAuthorization(options) {
     let authorization = options.authorization || {};
     sys.logs.debug('[googledrive] setting authorization');
-    let pkgConfig = config.get();
-    sys.logs.debug('[googledrive] config: '+JSON.stringify(pkgConfig));
-    sys.logs.debug('[googledrive] config id: '+JSON.stringify(pkgConfig.id));
-
     authorization = mergeJSON(authorization, {
         type: "oauth2",
         accessToken: sys.storage.get(
