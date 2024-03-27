@@ -45,6 +45,27 @@ by following these instructions:
 Take into account if any scope is selected to which the service account does not have access the package 
 will fail to be authorized to make any requests.
 
+### Scope
+The scope of access you are requesting, which may include multiple space-separated values.
+
+| Scope                                               | Description                                                      |
+|------------------------------------------------------|------------------------------------------------------------------|
+| https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.appfolder |    View and manage the app's own configuration data in your Google Drive.        |
+| https://www.googleapis.com/auth/drive.install |    Allow apps to appear as an option in the "Open with" or the "New" menu. |
+| https://www.googleapis.com/auth/drive.file |    Create new Drive files, or modify existing files, that you open with an app or that the user shares with an app while using the Google Picker API or the app's file picker. |
+| https://www.googleapis.com/auth/auth/drive.apps.readonly |    View apps authorized to access your Drive. |
+| https://www.googleapis.com/auth/drive | 	View and manage all of your Drive files. |
+| https://www.googleapis.com/auth/drive.readonly | 		View and download all your Drive files. |
+| https://www.googleapis.com/auth/drive.activity | 	View and add to the activity record of files in your Drive. |
+| https://www.googleapis.com/auth/drive.activity.readonly | 	View the activity record of files in your Drive. |
+| https://www.googleapis.com/auth/drive.metadata | 	View and manage metadata of files in your Drive. |
+| https://www.googleapis.com/auth/drive.metadata.readonly | 	View metadata for files in your Drive. |
+| https://www.googleapis.com/auth/drive.scripts | 	Modify your Google Apps Script scripts' behavior. |
+
+
+
+
+
 # Javascript API
 
 The Javascript API of the googledrive package has two pieces:
