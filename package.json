@@ -11,7 +11,7 @@
         {
             "type": "package",
             "name": "oauth",
-            "version": "v1.0.24"
+            "version": "v1.0.25-dev"
         }
     ],
     "configurationBuilder": "/configurationBuilder.js",
@@ -42,8 +42,8 @@
             "name": "state",
             "description": "An opaque value to prevent cross-site request forgery.",
             "type": "text"
-        }
-        ,{
+        },
+        {
             "name": "oauthCallback",
             "label": "OAuth callback",
             "description": "The OAuth callback to configure in your Google Drive App",

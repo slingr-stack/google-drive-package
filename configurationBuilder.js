@@ -14,7 +14,8 @@ let configurationBuilder = function (config) {
         clientSecret: config.clientSecret,
         scope: config.scope,
         state: config.state,
-        oauthCallback: config.oauthCallback
+        oauthCallback: config.oauthCallback,
+        additionalQueryString: 'access_type=offline'
 	};
     return config;
 }

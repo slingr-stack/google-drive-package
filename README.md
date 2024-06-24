@@ -9,7 +9,7 @@
     <tbody>
     <tr>
         <td>Google Drive package</td>
-        <td>March 20, 2024</td>
+        <td>June 24, 2024</td>
         <td>Detailed description of the API of the Google Drive package.</td>
     </tr>
     </tbody>
@@ -37,12 +37,12 @@ by following these instructions:
 - Create a Google Cloud project for your Google Drive app.
 - Access to Google Developer Console
 - Access to `API Manager > Library`. Enable `Drive API`.
-- Create a Client ID OAuth 2.0 account
+- Create a Client ID OAuth 2.0 account.
 - Copy the Client ID and Client Secret of the package.
 
 ### OAuth Scopes
 
-Take into account if any scope is selected to which the service account does not have access the package 
+Take into account if any scope is selected to which the service account does not have access, the package 
 will fail to be authorized to make any requests.
 
 ### Scope
@@ -62,9 +62,14 @@ The scope of access you are requesting, which may include multiple space-separat
 | https://www.googleapis.com/auth/drive.metadata.readonly | 	View metadata for files in your Drive. |
 | https://www.googleapis.com/auth/drive.scripts | 	Modify your Google Apps Script scripts' behavior. |
 
+## Configuration Parameters
+Field names to use the parameters with dynamic configuration.
 
-
-
+Name (Dynamic Config param name) - Type
+* Client Id (clientId) - Text
+* Client Secret (clientSecret) - Text
+* Scope (scope) - Text
+* State (state) - Text
 
 # Javascript API
 
@@ -74,9 +79,9 @@ The Javascript API of the googledrive package has two pieces:
 - **Flow steps**
 
 ## HTTP requests
-You can make `GET`,`POST`,`DELETE`,`PATCH` requests to the [googledrive API](API_URL_HERE) like this:
+You can make `GET`,`POST`,`DELETE`,`PATCH` requests to the [googledrive API](https://developers.google.com/drive/api/reference/rest/v3?hl=es-419) like this:
 ```javascript
-var response = pkg.googledrive.api.get('/about')
+var response = pkg.googledrive.api.get('/about?fields=user')
 var response = pkg.googledrive.api.post('/files/:fileId/watch', body)
 var response = pkg.googledrive.api.post('/files/:fileId/watch')
 var response = pkg.googledrive.api.delete('/drives/:driveId')

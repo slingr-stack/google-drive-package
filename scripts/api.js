@@ -60,7 +60,6 @@ exports.removeAccessToken = function () {
     return dependencies.oauth.functions.disconnectUser('googledrive:disconnectUser');
 }
 
-
 /****************************************************
  Public API - Generic Functions
  ****************************************************/
@@ -312,7 +311,6 @@ function setApiUri(options) {
     sys.logs.debug('[googledrive] Set url: ' + options.path + "->" + options.url);
     return options;
 }
-
 
 function setRequestHeaders(options) {
     let headers = options.headers || {};
