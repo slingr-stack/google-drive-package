@@ -51,7 +51,7 @@ exports.getAccessToken = function () {
 }
 
 exports.testFunction = function () {
-    sys.logs.info("[googledrive] Getting access token from oauth");
+    sys.logs.info("[googledrive] Testing oauth");
     return dependencies.oauth.functions.testFunction('googledrive:testFunction');
 }
 
