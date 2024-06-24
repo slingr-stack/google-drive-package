@@ -50,6 +50,11 @@ exports.getAccessToken = function () {
     return dependencies.oauth.functions.connectUser('googledrive:userConnected');
 }
 
+exports.testFunction = function () {
+    sys.logs.info("[googledrive] Testing oauth");
+    return dependencies.oauth.functions.testFunction('googledrive:testFunction');
+}
+
 /**
  * Removes the access token from the oauth.
  *

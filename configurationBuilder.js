@@ -14,8 +14,8 @@ let configurationBuilder = function (config) {
         clientSecret: config.clientSecret,
         scope: config.scope,
         state: config.state,
-        oauthCallback: config.oauthCallback,
-        additionalQueryString: 'access_type=offline'
+        oauthCallback: config.oauthCallback
 	};
+    sys.logs.debug("[googledrive] Configuration builder: " + JSON.stringify(config));
     return config;
 }
