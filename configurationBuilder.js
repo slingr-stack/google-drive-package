@@ -17,5 +17,6 @@ let configurationBuilder = function (config) {
         oauthCallback: config.oauthCallback,
         additionalQueryString: 'access_type=offline'
 	};
+    sys.logs.debug("[googledrive] Configuration builder: " + JSON.stringify(config));
     return config;
 }
