@@ -5,13 +5,13 @@
         {
             "type": "service",
             "name": "http",
-            "version": "v1.6.3",
+            "version": "v1.6.7",
             "instanceId": "shared"
         },
         {
             "type": "package",
             "name": "oauth",
-            "version": "v1.0.30"
+            "version": "v1.0.31"
         }
     ],
     "configurationBuilder": "/configurationBuilder.js",
@@ -27,13 +27,6 @@
             "label": "Client Secret",
             "name": "clientSecret",
             "description": "The client secret given to you by the API provider",
-            "required": "true",
-            "type": "text"
-        },
-        {
-            "label": "Scope",
-            "name": "scope",
-            "description": "The scope of access you are requesting, which may include multiple space-separated values.",
             "required": "true",
             "type": "text"
         },

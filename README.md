@@ -9,13 +9,15 @@
     <tbody>
     <tr>
         <td>Google Drive package</td>
-        <td>June 24, 2024</td>
+        <td>July 19, 2024</td>
         <td>Detailed description of the API of the Google Drive package.</td>
     </tr>
     </tbody>
 </table>
 
 # Overview
+
+Repo: [https://github.com/slingr-stack/google-drive-package](https://github.com/slingr-stack/google-drive-package)
 
 This package allows direct access to the [Google Drive API](https://developers.google.com/drive/api/reference/rest/v3),
 through a Client ID OAuth 2.0 account; however, it provides shortcuts and helpers for most common use cases. 
@@ -42,25 +44,8 @@ by following these instructions:
 
 ### OAuth Scopes
 
-Take into account if any scope is selected to which the service account does not have access, the package 
-will fail to be authorized to make any requests.
-
-### Scope
-The scope of access you are requesting, which may include multiple space-separated values.
-
-| Scope                                               | Description                                                      |
-|------------------------------------------------------|------------------------------------------------------------------|
-| https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.appfolder |    View and manage the app's own configuration data in your Google Drive.        |
-| https://www.googleapis.com/auth/drive.install |    Allow apps to appear as an option in the "Open with" or the "New" menu. |
-| https://www.googleapis.com/auth/drive.file |    Create new Drive files, or modify existing files, that you open with an app or that the user shares with an app while using the Google Picker API or the app's file picker. |
-| https://www.googleapis.com/auth/auth/drive.apps.readonly |    View apps authorized to access your Drive. |
-| https://www.googleapis.com/auth/drive | 	View and manage all of your Drive files. |
-| https://www.googleapis.com/auth/drive.readonly | 		View and download all your Drive files. |
-| https://www.googleapis.com/auth/drive.activity | 	View and add to the activity record of files in your Drive. |
-| https://www.googleapis.com/auth/drive.activity.readonly | 	View the activity record of files in your Drive. |
-| https://www.googleapis.com/auth/drive.metadata | 	View and manage metadata of files in your Drive. |
-| https://www.googleapis.com/auth/drive.metadata.readonly | 	View metadata for files in your Drive. |
-| https://www.googleapis.com/auth/drive.scripts | 	Modify your Google Apps Script scripts' behavior. |
+Take into account that the client must have access to the drive resources. If you try to access to a resource that the user does not own
+the request will result in a 404 or 403 unauthorized error.
 
 ## Configuration Parameters
 Field names to use the parameters with dynamic configuration.
@@ -68,8 +53,17 @@ Field names to use the parameters with dynamic configuration.
 Name (Dynamic Config param name) - Type
 * Client Id (clientId) - Text
 * Client Secret (clientSecret) - Text
-* Scope (scope) - Text
 * State (state) - Text
+
+### Storage value and Offline mode
+The Google Drive package makes use of the &access_type=offline param which allows the application runtime to request a refresh token.
+So when calling the UI service to be able to log in to the application
+
+`pkg.googledrive.api.getAccessToken();`
+
+the Google service must return an object with the access token and the refresh token. 
+For each of these tokens a record will be created in the app storage (accessible from the Monitor),  
+and you will be able to see them encrypted and associated to a user by id. 
 
 # Javascript API
 

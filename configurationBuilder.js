@@ -12,7 +12,7 @@ let configurationBuilder = function (config) {
         accessTokenUrl: 'https://oauth2.googleapis.com/token',
         clientId: config.clientId,
         clientSecret: config.clientSecret,
-        scope: config.scope,
+        scope: "https://www.googleapis.com/auth/drive",
         state: config.state,
         oauthCallback: config.oauthCallback
 	};
