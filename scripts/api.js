@@ -22,7 +22,8 @@ function handleRequestWithRetry(requestFn, options, callbackData, callbacks) {
         return requestFn(options, callbackData, callbacks);
     } catch (error) {
         sys.logs.info("[googledrive] Handling request "+JSON.stringify(error));
-        dependencies.oauth.functions.refreshToken('googledrive:refreshToken');
+        if (config.get("authorizationMethod") === 'oauth')  
+            dependencies.oauth.functions.refreshToken('googledrive:refreshToken');
         return requestFn(setAuthorization(options), callbackData, callbacks);
     }
 }
