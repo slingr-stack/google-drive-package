@@ -1,6 +1,6 @@
 {
     "name": "googledrive",
-    "label": "Google Drive Package",
+    "label": "Google Drive",
     "dependencies": [
         {
             "type": "service",
