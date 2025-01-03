@@ -57,11 +57,12 @@ function getAccessTokenForAccount(account) {
                 }
             });
         token = res.access_token;
-        let expires_at = res.expires_in;
-        expiration = new Date(new Date(expires_at) - 1 * 60 * 1000).getTime();
-        installationJson = mergeJSON(installationJson, {"token": token, "expiration": expiration});
+        if (token === null || token === undefined || (typeof token === 'string' && value.trim() === '')) {
+            sys.logs.error("[googledrive] The access_token is null or empty");
+            return null;
+        }
         sys.logs.info('[googledrive] Saving new token for account: ' + account);
-        sys.storage.put('installationInfo-googledrive-User-' + account + ' - access_token', installationJson.token);
+        sys.storage.put('installationInfo-googledrive-User-' + account + ' - access_token', token);
     }
     return token;
 }
