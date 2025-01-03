@@ -99,6 +99,11 @@
     ],
     "events": [
         {
+            "label": "Webhook",
+            "name": "webhook",
+            "description": "Happens when Google Drive sends a webhook to the package."
+        },
+        {
             "label": "User connected to Google Drive",
             "name": "userConnected",
             "description": "Happens when a user successfully connects to Google Drive."
