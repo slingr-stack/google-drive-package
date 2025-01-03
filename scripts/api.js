@@ -7,11 +7,8 @@ let httpReference = dependencies.http;
 let httpDependency = {
     get: httpReference.get,
     post: httpReference.post,
-    put: httpReference.put,
     patch: httpReference.patch,
     delete: httpReference.delete,
-    head: httpReference.head,
-    options: httpReference.options
 };
 
 let httpService = {};
@@ -40,12 +37,71 @@ for (let key in httpDependency) {
     if (typeof httpDependency[key] === 'function') httpService[key] = createWrapperFunction(httpDependency[key]);
 }
 
+function getAccessTokenForAccount(account) {
+    account = account || "account";
+    sys.logs.info('[googledrive] Getting access token for account: ' + account);
+    let installationJson = sys.storage.get('installationInfo-GoogleDrive---' + account) || {id: null};
+    let token = installationJson.token || null;
+    let expiration = installationJson.expiration || 0;
+    if (!!token || expiration < new Date()) {
+        sys.logs.info('[googledrive] Access token is expired or not found. Getting new token');
+        const res = httpService.post(
+            {
+                url: "https://oauth2.googleapis.com/token",
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: {
+                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                    assertion: getJsonWebToken()
+                }
+            });
+        token = res.access_token;
+        let expires_at = res.expires_in;
+        expiration = new Date(new Date(expires_at) - 1 * 60 * 1000).getTime();
+        installationJson = mergeJSON(installationJson, {"token": token, "expiration": expiration});
+        sys.logs.info('[googledrive] Saving new token for account: ' + account);
+        sys.storage.replace('installationInfo-GoogleDrive---' + account, installationJson);
+    }
+    return token;
+}
+
+function getJsonWebToken() {
+    let currentTime = new Date().getTime();
+    let futureTime = new Date(currentTime + ( 10 * 60 * 1000)).getTime();
+    return sys.utils.crypto.jwt.generate(
+        {
+            iss: config.get("serviceAccountEmail"),
+            aud: "https://oauth2.googleapis.com/token",
+            scope: "https://www.googleapis.com/auth/drive",
+            iat: currentTime,
+            exp: futureTime
+        },
+        config.get("privateKey"),
+        "RS256"
+    )
+}
+
+function mergeJSON (json1, json2) {
+    const result = {};
+    let key;
+    for (key in json1) {
+        if(json1.hasOwnProperty(key)) result[key] = json1[key];
+    }
+    for (key in json2) {
+        if(json2.hasOwnProperty(key)) result[key] = json2[key];
+    }
+    return result;
+}
+
 /**
  * Retrieves the access token.
  *
  * @return {void} The access token refreshed on the storage.
  */
 exports.getAccessToken = function () {
+    if (config.get("authorizationMethod") === 'serviceAccount') 
+        return getAccessTokenForAccount();
     sys.logs.info("[googledrive] Getting access token from oauth");
     return dependencies.oauth.functions.connectUser('googledrive:userConnected');
 }
@@ -98,20 +154,6 @@ exports.post = function(path, httpOptions, callbackData, callbacks) {
 };
 
 /**
- * Sends an HTTP PUT request to the specified URL with the provided HTTP options.
- *
- * @param {string} path         - The path to send the PUT request to.
- * @param {object} httpOptions  - The options to be included in the PUT request check http-service documentation.
- * @param {object} callbackData - Additional data to be passed to the callback functions. [optional]
- * @param {object} callbacks    - The callback functions to be called upon completion of the POST request. [optional]
- * @return {object}             - The response of the PUT request.
- */
-exports.put = function(path, httpOptions, callbackData, callbacks) {
-    let options = checkHttpOptions(path, httpOptions);
-    return httpService.put(GoogleDrive(options), callbackData, callbacks);
-};
-
-/**
  * Sends an HTTP PATCH request to the specified URL with the provided HTTP options.
  *
  * @param {string} path         - The path to send the PATCH request to.
@@ -137,34 +179,6 @@ exports.patch = function(path, httpOptions, callbackData, callbacks) {
 exports.delete = function(path, httpOptions, callbackData, callbacks) {
     let options = checkHttpOptions(path, httpOptions);
     return httpService.delete(GoogleDrive(options), callbackData, callbacks);
-};
-
-/**
- * Sends an HTTP HEAD request to the specified URL with the provided HTTP options.
- *
- * @param {string} path         - The path to send the HEAD request to.
- * @param {object} httpOptions  - The options to be included in the HEAD request check http-service documentation.
- * @param {object} callbackData - Additional data to be passed to the callback functions. [optional]
- * @param {object} callbacks    - The callback functions to be called upon completion of the HEAD request. [optional]
- * @return {object}             - The response of the HEAD request.
- */
-exports.head = function(path, httpOptions, callbackData, callbacks) {
-    let options = checkHttpOptions(path, httpOptions);
-    return httpService.head(GoogleDrive(options), callbackData, callbacks);
-};
-
-/**
- * Sends an HTTP OPTIONS request to the specified URL with the provided HTTP options.
- *
- * @param {string} path         - The path to send the OPTIONS request to.
- * @param {object} httpOptions  - The options to be included in the OPTIONS request check http-service documentation.
- * @param {object} callbackData - Additional data to be passed to the callback functions. [optional]
- * @param {object} callbacks    - The callback functions to be called upon completion of the OPTIONS request. [optional]
- * @return {object}             - The response of the OPTIONS request.
- */
-exports.options = function(path, httpOptions, callbackData, callbacks) {
-    let options = checkHttpOptions(path, httpOptions);
-    return httpService.options(GoogleDrive(options), callbackData, callbacks);
 };
 
 exports.utils = {
@@ -239,22 +253,22 @@ exports.utils = {
  * @return {boolean}                    - True if the signature is valid, false otherwise.
  */
 exports.utils.verifySignature = function (body, signature, signature256) {
-    sys.logs.info("Checking signature");
+    sys.logs.info("[googledrive] Checking signature");
     let verified = true;
     let verified256 = true;
     let secret = config.get("webhookSecret");
     if (!body || body === "") {
-        sys.logs.warn("The body is null or empty");
+        sys.logs.warn("[googledrive] The body is null or empty");
         return false;
     }
     if (!secret || secret === "" || !signature || signature === "" ||
         !sys.utils.crypto.verifySignatureWithHmac(body, signature.replace("sha1=",""), secret, "HmacSHA1")) {
-        sys.logs.warn("Invalid signature sha1");
+        sys.logs.warn("[googledrive] Invalid signature sha1");
         verified = false;
     }
     if (!secret || secret === "" ||  !signature256 ||!signature256 ||
         !sys.utils.crypto.verifySignatureWithHmac(body, signature.replace("sha256=",""), secret, "HmacSHA256")) {
-        sys.logs.warn("Invalid signature sha 256");
+        sys.logs.warn("[googledrive] Invalid signature sha 256");
         verified256 = false;
     }
 
