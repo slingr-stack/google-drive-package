@@ -38,9 +38,9 @@ for (let key in httpDependency) {
 }
 
 function getAccessTokenForAccount(account) {
-    account = account || "account";
+    account = account || sys.context.getCurrentUserRecord().id();
     sys.logs.info('[googledrive] Getting access token for account: ' + account);
-    let installationJson = sys.storage.get('installationInfo-GoogleDrive---' + account) || {id: null};
+    let installationJson = sys.storage.get('installationInfo-googledrive-User-' + account + ' - access_token') || {id: null};
     let token = installationJson.token || null;
     let expiration = installationJson.expiration || 0;
     if (!!token || expiration < new Date()) {
@@ -61,7 +61,7 @@ function getAccessTokenForAccount(account) {
         expiration = new Date(new Date(expires_at) - 1 * 60 * 1000).getTime();
         installationJson = mergeJSON(installationJson, {"token": token, "expiration": expiration});
         sys.logs.info('[googledrive] Saving new token for account: ' + account);
-        sys.storage.replace('installationInfo-GoogleDrive---' + account, installationJson);
+        sys.storage.replace('installationInfo-googledrive-User-' + account + ' - access_token', installationJson);
     }
     return token;
 }

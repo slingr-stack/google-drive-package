@@ -17,31 +17,71 @@
     "configurationBuilder": "/configurationBuilder.js",
     "configuration": [
         {
+            "name": "authorizationMethod",
+            "label": "Authorization Method",
+            "required": true,
+            "defaultValue": "serviceAccount",
+            "type": "buttonsGroup",
+            "typeOptions": {
+                "allowCustom": false,
+                "possibleValues": [
+                    {
+                        "label": "Service Account",
+                        "name": "serviceAccount"
+                    },
+                    {
+                        "label": "Oauth",
+                        "name": "oauth"
+                    }
+                ]
+            }
+        },
+        {
             "label": "Client Id",
             "name": "clientId",
             "description": "The ID for your client application registered with the API provider.",
             "required": "true",
-            "type": "text"
+            "type": "text",
+            "visibility": "config.authorizationMethod == 'oauth'"
         },
         {
             "label": "Client Secret",
             "name": "clientSecret",
             "description": "The client secret given to you by the API provider",
             "required": "true",
-            "type": "text"
+            "type": "text",
+            "visibility": "config.authorizationMethod == 'oauth'"
         },
         {
             "label": "State",
             "name": "state",
             "description": "An opaque value to prevent cross-site request forgery.",
-            "type": "text"
+            "type": "text",
+            "visibility": "config.authorizationMethod == 'oauth'"
         },
         {
             "name": "oauthCallback",
             "label": "OAuth callback",
             "description": "The OAuth callback to configure in your Google Drive App",
             "type": "label",
-            "value": "config.AUTH_CALLBACK_URL+'/authCallback'"
+            "value": "config.AUTH_CALLBACK_URL+'/authCallback'",
+            "visibility": "config.authorizationMethod == 'oauth'"
+        },
+        {
+            "name": "serviceAccountEmail",
+            "label": "Service Account Email",
+            "description": "The email from service account created",
+            "type": "text",
+            "required": true,
+            "visibility": "config.authorizationMethod == 'serviceAccount'"
+        },
+        {
+            "name": "privateKey",
+            "label": "Private Key",
+            "description": "The private key associated to the service account",
+            "type": "password",
+            "required": true,
+            "visibility": "config.authorizationMethod == 'serviceAccount'"
         },
         {
             "name": "webhooksUrl",
