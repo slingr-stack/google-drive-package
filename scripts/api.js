@@ -61,7 +61,7 @@ function getAccessTokenForAccount(account) {
         expiration = new Date(new Date(expires_at) - 1 * 60 * 1000).getTime();
         installationJson = mergeJSON(installationJson, {"token": token, "expiration": expiration});
         sys.logs.info('[googledrive] Saving new token for account: ' + account);
-        sys.storage.replace('installationInfo-googledrive-User-' + account + ' - access_token', installationJson);
+        sys.storage.put('installationInfo-googledrive-User-' + account + ' - access_token', installationJson);
     }
     return token;
 }
