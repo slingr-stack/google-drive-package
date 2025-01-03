@@ -57,7 +57,7 @@ function getAccessTokenForAccount(account) {
                 }
             });
         token = res.access_token;
-        if (token === null || token === undefined || (typeof token === 'string' && value.trim() === '')) {
+        if (token === null || token === undefined || (typeof token === 'string' && token.trim() === '')) {
             sys.logs.error("[googledrive] The access_token is null or empty");
             return null;
         }
