@@ -37,31 +37,31 @@
             }
         },
         {
-            "label": "Client Id",
             "name": "clientId",
+            "label": "Client ID",
             "description": "The ID for your client application registered with the API provider.",
             "required": "true",
             "type": "text",
             "visibility": "config.authorizationMethod == 'oauth'"
         },
         {
-            "label": "Client Secret",
             "name": "clientSecret",
+            "label": "Client Secret",
             "description": "The client secret given to you by the API provider",
             "required": "true",
             "type": "text",
             "visibility": "config.authorizationMethod == 'oauth'"
         },
         {
-            "label": "State",
             "name": "state",
+            "label": "State",
             "description": "An opaque value to prevent cross-site request forgery.",
             "type": "text",
             "visibility": "config.authorizationMethod == 'oauth'"
         },
         {
             "name": "oauthCallback",
-            "label": "OAuth callback",
+            "label": "OAuth Callback",
             "description": "The OAuth callback to configure in your Google Drive App",
             "type": "label",
             "value": "config.AUTH_CALLBACK_URL+'/authCallback'",

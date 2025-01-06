@@ -4,7 +4,7 @@ Repo: [https://github.com/slingr-stack/google-drive-package](https://github.com/
 
 This package allows direct access to the [Google Drive API](https://developers.google.com/drive/api/reference/rest/v3),
 through a Client ID OAuth 2.0 account; however, it provides shortcuts and helpers for most common use cases. 
-Also, you can see [Google Drive Documentation](https://developers.google.com/drive/api/guides/about-files) for more information.
+Also, you can refer to the [Google Drive Documentation](https://developers.google.com/drive/api/guides/about-files) for more information.
 
 Some features available in this package are:
 
@@ -16,11 +16,11 @@ Some features available in this package are:
 ## Configuration
 
 To use the Google Drive package, 
-first of all you must create an app in the [Google Developer Console](https://console.developers.google.com)
-afterwards create a Google Cloud project for your Google Drive app, then if you aim to use Service Account authentication method, follow these instructions:
+first you must create an app in the [Google Developer Console](https://console.developers.google.com)
+then create a Google Cloud project for your Google Drive app, then if you plan to use Service Account authentication method, follow these instructions:
 
 - Enable the Admin SDK API in your Google Cloud project.
-- Create a service account and credentials and delegate domain-wide authority to it (assign ONLY the necessary scopes to your service - account)Click here for the instructions.
+- Create a service account and credentials and delegate domain-wide authority to it (assign ONLY the necessary scopes to your service - account) [Click here for instructions](https://cloud.google.com/iam/docs/manage-access-service-accounts?hl=es-419).
 - Download the JSON file with the service account credentials to get the service account private key.
 
 Otherwise if you plan to use OAuth 2.0 authentication method:
@@ -31,11 +31,11 @@ Otherwise if you plan to use OAuth 2.0 authentication method:
 
 ### OAuth Scopes
 
-Take into account that the client must have access to the drive resources. If you try to access to a resource that the user does not own
+Note that the client must have access to the drive resources. If you try to access to a resource that the user does not own
 the request will result in a 404 or 403 unauthorized error.
 
 ## Configuration Parameters
-Field names to use the parameters with dynamic configuration.
+If you have selected OAuth 2.0 authorization method, there are the field names to use the parameters with dynamic configuration.
 
 Name (Dynamic Config param name) - Type
 * Client Id (clientId) - Text
@@ -51,7 +51,7 @@ Allows to choose between Account Service and OAuth 2.0 authorization methods
 **Mandatory**: true
 
 #### Service Account Email
-The email from service account created, it shows up when Service Account authorization method is enabled.
+The email created for the service account, it shows up when Service Account authorization method is enabled.
 
 **Name**: `serviceAccountEmail`
 **Type**: text
@@ -64,14 +64,14 @@ The private key associated to the service account, it shows up when Service Acco
 **Type**: password
 **Mandatory**: true
 
-#### Client id
+#### Client ID
 The ID for your client application registered with the API provider, it shows up when OAuth 2.0 authorization method is enabled.
 
 **Name**: `clientId`
 **Type**: text
 **Mandatory**: true
 
-#### Client secret
+#### Client Secret
 The client secret given to you by the API provider, it shows up when OAuth 2.0 authorization method is enabled.
 
 **Name**: `clientSecret`
@@ -85,7 +85,7 @@ An opaque value to prevent cross-site request forgery. it shows up when OAuth 2.
 **Type**: text
 **Mandatory**: false
 
-#### OAuth callback
+#### OAuth Callback
 The OAuth callback to configure in your Google Drive App. it shows up when OAuth 2.0 authorization method is enabled.
 
 **Name**: `oauthCallback`
@@ -97,23 +97,22 @@ The URL to configure in webhooks of your Google Drive App.
 **Name**: `webhooksUrl`
 **Type**: label
 
-### Storage value and Offline mode
-If OAuth 2.0 authorization method has been enabled, the Google Drive package makes use of the &access_type=offline param which allows the application runtime to request a refresh token.
+### Storage Value And Offline Mode
+If the OAuth 2.0 authorization method has been enabled, the Google Drive package makes use of the &access_type=offline param which allows the application runtime to request a refresh token.
 So when calling the UI service to be able to log in to the application
 
 `pkg.googledrive.api.getAccessToken();`
 
 the Google service must return an object with the access token and the refresh token. 
-For each of these tokens a record will be created in the app storage (accessible from the Monitor),  
-and you will be able to see them encrypted and associated to a user by id. In the other hand if you are using the default authorization method: `Service Account`, then you can call the method `pkg.googledrive.api.getAccessToken()` without using an action, there is no need of a UI service.
-
+For each of these tokens a record will be created in the app's storage (accessible from the Monitor),  
+and you will be able to see them encrypted and associated with a user by ID. On the other hand if you are using the default authorization method: `Service Account`, then you can call the method `pkg.googledrive.api.getAccessToken()` without using an action.
 # Javascript API
 
 You can make `GET`,`POST`,`DELETE`,`PATCH` requests to the [Google Drive API](https://developers.google.com/drive/api/reference/rest/v3?hl=es-419) like this:
 ```javascript
 var response = pkg.googledrive.api.get('/about?fields=user')
 var response = pkg.googledrive.api.post('/files/:fileId/watch', {
-  "id": "4ba78bf0-6a47-11e2-bcfd-0800200c9a77", // Your channel ID. We recommend that you use a universally unique identifier (UUID) or any similar unique string. Maximum length: 64 characters. 
+  "id": "<use a unique UUID or any similar unique string>", // Your channel ID. Maximum length: 64 characters. 
   "type": "web_hook",
   "address": "https://mydomain.com/notifications", // Your receiving URL.
   ...
@@ -126,14 +125,14 @@ var response = pkg.googledrive.api.patch('/files/:fileId/comments/:commentId/rep
 var response = pkg.googledrive.api.patch('/files/:fileId/comments/:commentId/replies/:replyId')
 ```
 
-Please take a look at the documentation of the [HTTP service](https://github.com/slingr-stack/http-service)
+Please refer to the documentation of the [HTTP service](https://github.com/slingr-stack/http-service)
 for more information about generic requests.
 
 ## Events
 
 ### Webhook
 
-Incoming webhook events will be automatically captured by the default listener named `Catch HTTP google drive events`, which can be found below the `Scripts` section. Alternatively, you have the option to create a new package listener. For more information, please refer to the [Listeners Documentation](https://platform-docs.slingr.io/dev-reference/data-model-and-logic/listeners/). Please take a look at the google drive documentation of the [Webhooks](https://developers.google.com/drive/api/guides/push?hl=es-419) for more information.
+Incoming webhook events are automatically captured by the default listener named `Catch HTTP google drive events`, which can be found below the `Scripts` section. Alternatively, you have the option to create a new package listener. For more information, please refer to the [Listeners Documentation](https://platform-docs.slingr.io/dev-reference/data-model-and-logic/listeners/). Please take a look at the google drive documentation of the [Webhooks](https://developers.google.com/drive/api/guides/push?hl=es-419) for more information.
 
 ## Dependencies
 * HTTP Service (Latest Version)
