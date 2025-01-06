@@ -122,7 +122,7 @@ You can make `GET`,`POST`,`DELETE`,`PATCH` requests to the [Google Drive API](ht
 ### Gets information about the user, their Drive, and system functions. 
 
 ```javascript
-var response = pkg.googledrive.api.get('/about?fields=user')
+const response = pkg.googledrive.api.get('/about?fields=user')
 ```
 
 ### Subscribes to file changes.
