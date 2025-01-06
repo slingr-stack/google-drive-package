@@ -118,20 +118,44 @@ The Google service will return an object containing both the access token and th
 # Javascript API
 
 You can make `GET`,`POST`,`DELETE`,`PATCH` requests to the [Google Drive API](https://developers.google.com/drive/api/reference/rest/v3?hl=es-419) like this:
+
+### Gets information about the user, their Drive, and system functions. 
+
 ```javascript
 var response = pkg.googledrive.api.get('/about?fields=user')
-var response = pkg.googledrive.api.post('/files/:fileId/watch', {
+```
+
+### Subscribes to file changes.
+
+```javascript
+const body = {
   "id": "<use a unique UUID or any similar unique string>", // Your channel ID. Maximum length: 64 characters. 
   "type": "web_hook",
   "address": "https://mydomain.com/notifications", // Your receiving URL.
   ...
   "token": "target=myApp-myChangesChannelDest", // (Optional) Your changes channel token.
   "expiration": 1426325213000 // (Optional) Your requested channel expiration date and time.
-});
-var response = pkg.googledrive.api.post('/files/:fileId/watch')
-var response = pkg.googledrive.api.delete('/drives/:driveId')
-var response = pkg.googledrive.api.patch('/files/:fileId/comments/:commentId/replies/:replyId', body)
-var response = pkg.googledrive.api.patch('/files/:fileId/comments/:commentId/replies/:replyId')
+};
+const response = pkg.googledrive.api.post('/files/:fileId/watch', body);
+```
+
+### Retrieves the metadata of a shared drive by ID.
+
+```javascript
+const response = pkg.googledrive.api.delete('/drives/:driveId')
+```
+
+### Updates a comment
+```javascript
+const body = {
+  "content": "lorem ipsum"
+}
+const response = pkg.googledrive.api.patch('/files/:fileId/comments/:commentId?fields=id,content,author', body)
+```
+
+### Deletes a comment
+```javascript
+pkg.googledrive.api.patch('/files/:fileId/comments/:commentId')
 ```
 
 Please refer to the documentation of the [HTTP service](https://github.com/slingr-stack/http-service)
