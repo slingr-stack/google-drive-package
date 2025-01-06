@@ -142,7 +142,7 @@ const response = pkg.googledrive.api.post('/files/:fileId/watch', body);
 ### Retrieves the metadata of a shared drive by ID.
 
 ```javascript
-const response = pkg.googledrive.api.delete('/drives/:driveId')
+const response = pkg.googledrive.api.get('/drives/:driveId')
 ```
 
 ### Updates a comment
