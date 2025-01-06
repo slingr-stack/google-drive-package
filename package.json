@@ -93,8 +93,9 @@
         {
             "name": "GOOGLEDRIVE_API_BASE_URL",
             "label": "Googledrive Api Url",
+            "description": "The URL of the Google Drive API where the requests are performed.",
             "type": "label",
-            "value": "https://developers.google.com/drive/api/reference/rest/v3"
+            "value": "https://www.googleapis.com/drive/v3"
         }
     ],
     "events": [

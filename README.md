@@ -97,6 +97,12 @@ The URL to configure in webhooks of your Google Drive App.
 **Name**: `webhooksUrl`
 **Type**: label
 
+#### Googledrive Api Url
+The URL of the Google Drive API where the requests are performed.
+
+**Name**: `GOOGLEDRIVE_API_BASE_URL`
+**Type**: label
+
 ### Storage Value And Offline Mode
 
 By default, the `Service Account` authorization method is used. When using this method, you can directly call the following method to retrieve the access token, without requiring any additional actions:
