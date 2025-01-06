@@ -356,12 +356,12 @@ function setAuthorization(options) {
     let authorization = options.authorization || {};
     sys.logs.debug('[googledrive] setting authorization');
     authorization = mergeJSON(authorization, {
+        type: "oauth2",
         accessToken: config.get("authorizationMethod") === 'oauth' ? 
                         sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true}) :
-                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true}).access_token,
+                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true}).token,
         headerPrefix: "Bearer"
     });
-    if (config.get("authorizationMethod") === 'oauth') mergeJSON(authorization, {type: "oauth2"});
     options.authorization = authorization;
     return options;
 }
