@@ -16,12 +16,16 @@ Some features available in this package are:
 ## Configuration
 
 To use the Google Drive package, 
-you must create an app in the [Google Developer Console](https://console.developers.google.com)
-by following these instructions:
+first of all you must create an app in the [Google Developer Console](https://console.developers.google.com)
+afterwards create a Google Cloud project for your Google Drive app, then if you aim to use Service Account authentication method, follow these instructions:
 
-- Create a Google Cloud project for your Google Drive app.
-- Access to Google Developer Console
-- Access to `API Manager > Library`. Enable `Drive API`.
+- Enable the Admin SDK API in your Google Cloud project.
+- Create a service account and credentials and delegate domain-wide authority to it (assign ONLY the necessary scopes to your service - account)Click here for the instructions.
+- Download the JSON file with the service account credentials to get the service account private key.
+
+Otherwise if you plan to use OAuth 2.0 authentication method:
+
+- Enable the Drive API in your Google Cloud project.
 - Create a Client ID OAuth 2.0 account.
 - Copy the Client ID and Client Secret of the package.
 
@@ -38,28 +42,84 @@ Name (Dynamic Config param name) - Type
 * Client Secret (clientSecret) - Text
 * State (state) - Text
 
+
+#### Authorization Method
+Allows to choose between Account Service and OAuth 2.0 authorization methods
+
+**Name**: `authorizationMethod`
+**Type**: buttonsGroup
+**Mandatory**: true
+
+#### Service Account Email
+The email from service account created, it shows up when Service Account authorization method is enabled.
+
+**Name**: `serviceAccountEmail`
+**Type**: text
+**Mandatory**: true
+
+#### Private Key
+The private key associated to the service account, it shows up when Service Account authorization method is enabled.
+
+**Name**: `privateKey`
+**Type**: password
+**Mandatory**: true
+
+#### Client id
+The ID for your client application registered with the API provider, it shows up when OAuth 2.0 authorization method is enabled.
+
+**Name**: `clientId`
+**Type**: text
+**Mandatory**: true
+
+#### Client secret
+The client secret given to you by the API provider, it shows up when OAuth 2.0 authorization method is enabled.
+
+**Name**: `clientSecret`
+**Type**: password
+**Mandatory**: true
+
+#### State
+An opaque value to prevent cross-site request forgery. it shows up when OAuth 2.0 authorization method is enabled.
+
+**Name**: `state`
+**Type**: text
+**Mandatory**: false
+
+#### OAuth callback
+The OAuth callback to configure in your Google Drive App. it shows up when OAuth 2.0 authorization method is enabled.
+
+**Name**: `oauthCallback`
+**Type**: label
+
+#### Webhooks URL
+The URL to configure in webhooks of your Google Drive App.
+
+**Name**: `webhooksUrl`
+**Type**: label
+
 ### Storage value and Offline mode
-The Google Drive package makes use of the &access_type=offline param which allows the application runtime to request a refresh token.
+If OAuth 2.0 authorization method has been enabled, the Google Drive package makes use of the &access_type=offline param which allows the application runtime to request a refresh token.
 So when calling the UI service to be able to log in to the application
 
 `pkg.googledrive.api.getAccessToken();`
 
 the Google service must return an object with the access token and the refresh token. 
 For each of these tokens a record will be created in the app storage (accessible from the Monitor),  
-and you will be able to see them encrypted and associated to a user by id. 
+and you will be able to see them encrypted and associated to a user by id. In the other hand if you are using the default authorization method: `Service Account`, then you can call the method `pkg.googledrive.api.getAccessToken()` without using an action, there is no need of a UI service.
 
 # Javascript API
 
-The Javascript API of the googledrive package has two pieces:
-
-- **HTTP requests**
-- **Flow steps**
-
-## HTTP requests
-You can make `GET`,`POST`,`DELETE`,`PATCH` requests to the [googledrive API](https://developers.google.com/drive/api/reference/rest/v3?hl=es-419) like this:
+You can make `GET`,`POST`,`DELETE`,`PATCH` requests to the [Google Drive API](https://developers.google.com/drive/api/reference/rest/v3?hl=es-419) like this:
 ```javascript
 var response = pkg.googledrive.api.get('/about?fields=user')
-var response = pkg.googledrive.api.post('/files/:fileId/watch', body)
+var response = pkg.googledrive.api.post('/files/:fileId/watch', {
+  "id": "4ba78bf0-6a47-11e2-bcfd-0800200c9a77", // Your channel ID. We recommend that you use a universally unique identifier (UUID) or any similar unique string. Maximum length: 64 characters. 
+  "type": "web_hook",
+  "address": "https://mydomain.com/notifications", // Your receiving URL.
+  ...
+  "token": "target=myApp-myChangesChannelDest", // (Optional) Your changes channel token.
+  "expiration": 1426325213000 // (Optional) Your requested channel expiration date and time.
+});
 var response = pkg.googledrive.api.post('/files/:fileId/watch')
 var response = pkg.googledrive.api.delete('/drives/:driveId')
 var response = pkg.googledrive.api.patch('/files/:fileId/comments/:commentId/replies/:replyId', body)
@@ -71,17 +131,21 @@ for more information about generic requests.
 
 ## Events
 
-There are no events for this endpoint.
+### Webhook
+
+Incoming webhook events will be automatically captured by the default listener named `Catch HTTP google drive events`, which can be found below the `Scripts` section. Alternatively, you have the option to create a new package listener. For more information, please refer to the [Listeners Documentation](https://platform-docs.slingr.io/dev-reference/data-model-and-logic/listeners/). Please take a look at the google drive documentation of the [Webhooks](https://developers.google.com/drive/api/guides/push?hl=es-419) for more information.
 
 ## Dependencies
 * HTTP Service (Latest Version)
+* Oauth Package (Latest Version)
 
-# About SLINGR
+## About Slingr
 
-SLINGR is a low-code rapid application development platform that accelerates development, with robust architecture for integrations and executing custom workflows and automation.
+SLINGR is a low-code rapid application development platform that speeds up development,
+with robust architecture for integrations and executing custom workflows and automation.
 
 [More info about SLINGR](https://slingr.io)
 
-# License
+## License
 
 This package is licensed under the Apache License 2.0. See the `LICENSE` file for more details.

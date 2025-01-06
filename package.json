@@ -30,7 +30,7 @@
                         "name": "serviceAccount"
                     },
                     {
-                        "label": "Oauth",
+                        "label": "OAuth 2.0",
                         "name": "oauth"
                     }
                 ]
@@ -94,7 +94,7 @@
             "name": "GOOGLEDRIVE_API_BASE_URL",
             "label": "Googledrive Api Url",
             "type": "label",
-            "value": "https://www.googleapis.com/drive/v3"
+            "value": "https://developers.google.com/drive/api/reference/rest/v3"
         }
     ],
     "events": [
