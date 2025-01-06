@@ -92,7 +92,7 @@
         },
         {
             "name": "GOOGLEDRIVE_API_BASE_URL",
-            "label": "Googledrive Api Url",
+            "label": "Googledrive Api Url (coky)",
             "type": "label",
             "value": "https://developers.google.com/drive/api/reference/rest/v3"
         }
