@@ -155,7 +155,7 @@ const response = pkg.googledrive.api.patch('/files/:fileId/comments/:commentId?f
 
 ### Deletes a comment
 ```javascript
-pkg.googledrive.api.patch('/files/:fileId/comments/:commentId')
+pkg.googledrive.api.delete('/files/:fileId/comments/:commentId')
 ```
 
 Please refer to the documentation of the [HTTP service](https://github.com/slingr-stack/http-service)
