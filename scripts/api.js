@@ -21,12 +21,17 @@ function handleRequestWithRetry(requestFn, options, callbackData, callbacks) {
     try {
         return requestFn(options, callbackData, callbacks);
     } catch (error) {
-        sys.logs.debug('*** requestFn ' + JSON.stringify(requestFn))
-        sys.logs.debug('*** options ' + JSON.stringify(options))
         sys.logs.info("[googledrive] Handling request "+JSON.stringify(error));
-        if (config.get("authorizationMethod") === 'oauth')  
-            dependencies.oauth.functions.refreshToken('googledrive:refreshToken');
-        return requestFn(setAuthorization(options), callbackData, callbacks);
+        if (error.additionalInfo.status === 401) {
+            if (config.get("authorizationMethod") === 'oauth') {
+                dependencies.oauth.functions.refreshToken('googledrive:refreshToken');
+            } else { 
+                getAccessTokenForAccount(); // this will attempt to get a new access_token in case it has expired
+            }    
+            return requestFn(setAuthorization(options), callbackData, callbacks);
+        } else {
+            throw error; 
+        }        
     }
 }
 
