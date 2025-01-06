@@ -21,6 +21,8 @@ function handleRequestWithRetry(requestFn, options, callbackData, callbacks) {
     try {
         return requestFn(options, callbackData, callbacks);
     } catch (error) {
+        sys.logs.debug('*** requestFn ' + JSON.stringify(requestFn))
+        sys.logs.debug('*** options ' + JSON.stringify(options))
         sys.logs.info("[googledrive] Handling request "+JSON.stringify(error));
         if (config.get("authorizationMethod") === 'oauth')  
             dependencies.oauth.functions.refreshToken('googledrive:refreshToken');
@@ -41,7 +43,7 @@ for (let key in httpDependency) {
 function getAccessTokenForAccount(account) {
     account = account || sys.context.getCurrentUserRecord().id();
     sys.logs.info('[googledrive] Getting access token for account: ' + account);
-    let installationJson = sys.storage.get('installationInfo-googledrive-User-' + account + ' - access_token') || {id: null};
+    let installationJson = sys.storage.get('installationInfo-googledrive-User-' + account) || {id: null};
     let token = installationJson.token || null;
     let expiration = installationJson.expiration || 0;
     if (!!token || expiration < new Date()) {
@@ -58,12 +60,15 @@ function getAccessTokenForAccount(account) {
                 }
             });
         token = res.access_token;
+        let expires_at = res.expires_in;
+        expiration = expires_at * 1000 +  + new Date().getTime();
+        installationJson = mergeJSON(installationJson, {"token": token, "expiration": expiration});
         if (token === null || token === undefined || (typeof token === 'string' && token.trim() === '')) {
             sys.logs.error("[googledrive] The access_token is null or empty");
             return null;
         }
         sys.logs.info('[googledrive] Saving new token for account: ' + account);
-        sys.storage.put('installationInfo-googledrive-User-' + account + ' - access_token', token);
+        sys.storage.put('installationInfo-googledrive-User-' + account, installationJson);
     }
     return token;
 }
@@ -102,8 +107,10 @@ function mergeJSON (json1, json2) {
  * @return {void} The access token refreshed on the storage.
  */
 exports.getAccessToken = function () {
-    if (config.get("authorizationMethod") === 'serviceAccount') 
-        return getAccessTokenForAccount();
+    if (config.get("authorizationMethod") === 'serviceAccount') {
+        const installationJson = getAccessTokenForAccount();
+        if (installationJson !== null) return installationJson.access_token;
+    }
     sys.logs.info("[googledrive] Getting access token from oauth");
     return dependencies.oauth.functions.connectUser('googledrive:userConnected');
 }
@@ -119,8 +126,13 @@ exports.testFunction = function () {
  * @return {void} The access token removed on the storage.
  */
 exports.removeAccessToken = function () {
-    sys.logs.info("[googledrive] Removing access token from oauth");
-    return dependencies.oauth.functions.disconnectUser('googledrive:disconnectUser');
+    sys.logs.info("[googledrive] Removing access token");
+    if (config.get("authorizationMethod") === 'serviceAccount') {
+        sys.storage.remove('installationInfo-googledrive-User-' +  sys.context.getCurrentUserRecord().id() + ' - access_token');            
+    } else {
+        dependencies.oauth.functions.disconnectUser('googledrive:disconnectUser');
+    }
+     
 }
 
 /****************************************************
@@ -344,11 +356,12 @@ function setAuthorization(options) {
     let authorization = options.authorization || {};
     sys.logs.debug('[googledrive] setting authorization');
     authorization = mergeJSON(authorization, {
-        type: "oauth2",
-        accessToken: sys.storage.get(
-            'installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true}),
+        accessToken: config.get("authorizationMethod") === 'oauth' ? 
+                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true}) :
+                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true}).access_token,
         headerPrefix: "Bearer"
     });
+    if (config.get("authorizationMethod") === 'oauth') mergeJSON(authorization, {type: "oauth2"});
     options.authorization = authorization;
     return options;
 }
