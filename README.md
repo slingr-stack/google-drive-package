@@ -29,7 +29,7 @@ Otherwise if you plan to use OAuth 2.0 authentication method:
 - Create a Client ID OAuth 2.0 account.
 - Copy the Client ID and Client Secret of the package.
 
-### OAuth Scopes
+### Scopes
 
 Note that the client must have access to the drive resources. If you try to access to a resource that the user does not own
 the request will result in a 404 or 403 unauthorized error.

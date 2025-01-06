@@ -128,7 +128,7 @@ exports.testFunction = function () {
 exports.removeAccessToken = function () {
     sys.logs.info("[googledrive] Removing access token");
     if (config.get("authorizationMethod") === 'serviceAccount') {
-        sys.storage.remove('installationInfo-googledrive-User-' +  sys.context.getCurrentUserRecord().id() + ' - access_token');            
+        sys.storage.remove('installationInfo-googledrive-User-' +  sys.context.getCurrentUserRecord().id());            
     } else {
         dependencies.oauth.functions.disconnectUser('googledrive:disconnectUser');
     }
