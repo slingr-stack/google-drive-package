@@ -105,9 +105,7 @@ By default, the `Service Account` authorization method is used. When using this 
 
 This will return the access token, which will be securely stored in the application's storage and associated with a user by their ID.
 
-If you have enabled the `OAuth 2.0` authorization method, the Google Drive package uses the `&access_type=offline` parameter, which allows the application to request a refresh token. When calling the UI service (for example using an action) to log in to the application:
-
-`pkg.googledrive.api.getAccessToken();`
+If you have enabled the `OAuth 2.0` authorization method, the same method is used. The difference is that the Google Drive package includes the `&access_type=offline` parameter, which allows the application to request a refresh token. This happens when calling the UI service (which should run during runtime, for example, by invoking the method within an action) to log in to the application.
 
 The Google service will return an object containing both the access token and the refresh token. Each token will be stored in the app's storage (accessible via the Monitor), where you can view them encrypted and associated with the user by ID.
 
