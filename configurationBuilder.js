@@ -17,7 +17,6 @@ let configurationBuilder = function (config) {
             state: config.state,
             oauthCallback: config.oauthCallback
         };
-        sys.logs.debug("[googledrive] Configuration builder: " + JSON.stringify(config));
     }
     return config;
 }

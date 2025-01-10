@@ -17,8 +17,8 @@
     "configurationBuilder": "/configurationBuilder.js",
     "configuration": [
         {
-            "name": "authorizationMethod",
-            "label": "Authorization Method",
+            "name": "authenticationnMethod",
+            "label": "Authentication Method",
             "required": true,
             "defaultValue": "serviceAccount",
             "type": "buttonsGroup",

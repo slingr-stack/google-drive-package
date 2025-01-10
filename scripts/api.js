@@ -23,7 +23,7 @@ function handleRequestWithRetry(requestFn, options, callbackData, callbacks) {
     } catch (error) {
         sys.logs.info("[googledrive] Handling request "+JSON.stringify(error));
         if (error.additionalInfo.status === 401) {
-            if (config.get("authorizationMethod") === 'oauth') {
+            if (config.get("authenticationMethod") === 'oauth') {
                 dependencies.oauth.functions.refreshToken('googledrive:refreshToken');
             } else { 
                 getAccessTokenForAccount(); // this will attempt to get a new access_token in case it has expired
@@ -45,8 +45,8 @@ for (let key in httpDependency) {
     if (typeof httpDependency[key] === 'function') httpService[key] = createWrapperFunction(httpDependency[key]);
 }
 
-function getAccessTokenForAccount(account) {
-    account = account || sys.context.getCurrentUserRecord().id();
+function getAccessTokenForAccount() {
+    const account = sys.context.getCurrentUserRecord().id();
     sys.logs.info('[googledrive] Getting access token for account: ' + account);
     let installationJson = sys.storage.get('installationInfo-googledrive-User-' + account) || {id: null};
     let token = installationJson.token || null;
@@ -112,7 +112,7 @@ function mergeJSON (json1, json2) {
  * @return {void} The access token refreshed on the storage.
  */
 exports.getAccessToken = function () {
-    if (config.get("authorizationMethod") === 'serviceAccount') {
+    if (config.get("authenticationMethod") === 'serviceAccount') {
         const installationJson = getAccessTokenForAccount();
         if (installationJson !== null) return installationJson.access_token;
     }
@@ -132,7 +132,7 @@ exports.testFunction = function () {
  */
 exports.removeAccessToken = function () {
     sys.logs.info("[googledrive] Removing access token");
-    if (config.get("authorizationMethod") === 'serviceAccount') {
+    if (config.get("authenticationMethod") === 'serviceAccount') {
         sys.storage.remove('installationInfo-googledrive-User-' +  sys.context.getCurrentUserRecord().id());            
     } else {
         dependencies.oauth.functions.disconnectUser('googledrive:disconnectUser');
@@ -362,7 +362,7 @@ function setAuthorization(options) {
     sys.logs.debug('[googledrive] setting authorization');
     authorization = mergeJSON(authorization, {
         type: "oauth2",
-        accessToken: config.get("authorizationMethod") === 'oauth' ? 
+        accessToken: config.get("authenticationMethod") === 'oauth' ? 
                         sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true}) :
                         sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true}).token,
         headerPrefix: "Bearer"
