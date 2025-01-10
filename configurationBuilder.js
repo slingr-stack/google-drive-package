@@ -6,7 +6,7 @@
  ****************************************************/
 
 let configurationBuilder = function (config) {
-    if (config.authentication === 'oauth') {
+    if (config.authenticationMethod === 'oauth') {
         config.oauth = {
             id: 'installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),
             authUrl: 'https://accounts.google.com/o/oauth2/auth',
