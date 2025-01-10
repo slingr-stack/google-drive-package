@@ -17,7 +17,7 @@
     "configurationBuilder": "/configurationBuilder.js",
     "configuration": [
         {
-            "name": "authenticationnMethod",
+            "name": "authenticationMethod",
             "label": "Authentication Method",
             "required": true,
             "defaultValue": "serviceAccount",
