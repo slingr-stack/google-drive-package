@@ -42,7 +42,7 @@
             "description": "The ID for your client application registered with the API provider.",
             "required": "true",
             "type": "text",
-            "visibility": "config.authorizationMethod == 'oauth'"
+            "visibility": "config.authenticationMethod == 'oauth'"
         },
         {
             "name": "clientSecret",
@@ -50,14 +50,14 @@
             "description": "The client secret given to you by the API provider",
             "required": "true",
             "type": "text",
-            "visibility": "config.authorizationMethod == 'oauth'"
+            "visibility": "config.authenticationMethod == 'oauth'"
         },
         {
             "name": "state",
             "label": "State",
             "description": "An opaque value to prevent cross-site request forgery.",
             "type": "text",
-            "visibility": "config.authorizationMethod == 'oauth'"
+            "visibility": "config.authenticationMethod == 'oauth'"
         },
         {
             "name": "oauthCallback",
@@ -65,7 +65,7 @@
             "description": "The OAuth callback to configure in your Google Drive App",
             "type": "label",
             "value": "config.AUTH_CALLBACK_URL+'/authCallback'",
-            "visibility": "config.authorizationMethod == 'oauth'"
+            "visibility": "config.authenticationMethod == 'oauth'"
         },
         {
             "name": "serviceAccountEmail",
@@ -73,7 +73,7 @@
             "description": "The email from service account created",
             "type": "text",
             "required": true,
-            "visibility": "config.authorizationMethod == 'serviceAccount'"
+            "visibility": "config.authenticationMethod == 'serviceAccount'"
         },
         {
             "name": "privateKey",
@@ -81,7 +81,7 @@
             "description": "The private key associated to the service account",
             "type": "password",
             "required": true,
-            "visibility": "config.authorizationMethod == 'serviceAccount'"
+            "visibility": "config.authenticationMethod == 'serviceAccount'"
         },
         {
             "name": "webhooksUrl",
