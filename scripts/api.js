@@ -112,11 +112,11 @@ function mergeJSON (json1, json2) {
  * @return {void} The access token refreshed on the storage.
  */
 exports.getAccessToken = function () {
+    sys.logs.info("[googledrive] Getting access token");
     if (config.get("authenticationMethod") === 'serviceAccount') {
         const installationJson = getAccessTokenForAccount();
         if (installationJson !== null) return installationJson.access_token;
     }
-    sys.logs.info("[googledrive] Getting access token from oauth");
     return dependencies.oauth.functions.connectUser('googledrive:userConnected');
 }
 
