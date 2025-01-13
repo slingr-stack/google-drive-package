@@ -2,7 +2,7 @@
 
 Repo: [https://github.com/slingr-stack/google-drive-package](https://github.com/slingr-stack/google-drive-package)
 
-This package allows direct access to the [Google Drive API](https://developers.google.com/drive/api/reference/rest/v3),
+This [package](https://platform-docs.slingr.io/dev-reference/data-model-and-logic/packages/) allows direct access to the [Google Drive API](https://developers.google.com/drive/api/reference/rest/v3),
 through a Client ID OAuth 2.0 account; however, it provides shortcuts and helpers for most common use cases. 
 Also, you can refer to the [Google Drive Documentation](https://developers.google.com/drive/api/guides/about-files) for more information.
 
