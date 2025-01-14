@@ -20,7 +20,7 @@
             "name": "authenticationMethod",
             "label": "Authentication Method",
             "required": true,
-            "defaultValue": "serviceAccount",
+            "defaultValue": "oauth",
             "type": "buttonsGroup",
             "typeOptions": {
                 "allowCustom": false,
