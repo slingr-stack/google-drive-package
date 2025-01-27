@@ -7,11 +7,8 @@ let httpReference = dependencies.http;
 let httpDependency = {
     get: httpReference.get,
     post: httpReference.post,
-    put: httpReference.put,
     patch: httpReference.patch,
     delete: httpReference.delete,
-    head: httpReference.head,
-    options: httpReference.options
 };
 
 let httpService = {};
@@ -25,8 +22,16 @@ function handleRequestWithRetry(requestFn, options, callbackData, callbacks) {
         return requestFn(options, callbackData, callbacks);
     } catch (error) {
         sys.logs.info("[googledrive] Handling request "+JSON.stringify(error));
-        dependencies.oauth.functions.refreshToken('googledrive:refreshToken');
-        return requestFn(setAuthorization(options), callbackData, callbacks);
+        if (error.additionalInfo.status === 401) {
+            if (config.get("authenticationMethod") === 'oauth') {
+                dependencies.oauth.functions.refreshToken('googledrive:refreshToken');
+            } else { 
+                getAccessTokenForAccount(); // this will attempt to get a new access_token in case it has expired
+            }    
+            return requestFn(setAuthorization(options), callbackData, callbacks);
+        } else {
+            throw error; 
+        }        
     }
 }
 
@@ -40,12 +45,77 @@ for (let key in httpDependency) {
     if (typeof httpDependency[key] === 'function') httpService[key] = createWrapperFunction(httpDependency[key]);
 }
 
+function getAccessTokenForAccount() {
+    const account = sys.context.getCurrentUserRecord().id();
+    sys.logs.info('[googledrive] Getting access token for account: ' + account);
+    let installationJson = sys.storage.get('installationInfo-googledrive-User-' + account) || {id: null};
+    let token = installationJson.token || null;
+    let expiration = installationJson.expiration || 0;
+    if (!!token || expiration < new Date()) {
+        sys.logs.info('[googledrive] Access token is expired or not found. Getting new token');
+        const res = httpService.post(
+            {
+                url: "https://oauth2.googleapis.com/token",
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: {
+                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                    assertion: getJsonWebToken()
+                }
+            });
+        token = res.access_token;
+        let expires_at = res.expires_in;
+        expiration = expires_at * 1000 +  + new Date().getTime();
+        installationJson = mergeJSON(installationJson, {"token": token, "expiration": expiration});
+        if (token === null || token === undefined || (typeof token === 'string' && token.trim() === '')) {
+            sys.logs.error("[googledrive] The access_token is null or empty");
+            return null;
+        }
+        sys.logs.info('[googledrive] Saving new token for account: ' + account);
+        sys.storage.put('installationInfo-googledrive-User-' + account, installationJson);
+    }
+    return token;
+}
+
+function getJsonWebToken() {
+    let currentTime = new Date().getTime();
+    let futureTime = new Date(currentTime + ( 10 * 60 * 1000)).getTime();
+    return sys.utils.crypto.jwt.generate(
+        {
+            iss: config.get("serviceAccountEmail"),
+            aud: "https://oauth2.googleapis.com/token",
+            scope: "https://www.googleapis.com/auth/drive",
+            iat: currentTime,
+            exp: futureTime
+        },
+        config.get("privateKey"),
+        "RS256"
+    )
+}
+
+function mergeJSON (json1, json2) {
+    const result = {};
+    let key;
+    for (key in json1) {
+        if(json1.hasOwnProperty(key)) result[key] = json1[key];
+    }
+    for (key in json2) {
+        if(json2.hasOwnProperty(key)) result[key] = json2[key];
+    }
+    return result;
+}
+
 /**
  * Retrieves the access token.
  *
  * @return {void} The access token refreshed on the storage.
  */
 exports.getAccessToken = function () {
+    if (config.get("authenticationMethod") === 'serviceAccount') {
+        const installationJson = getAccessTokenForAccount();
+        if (installationJson !== null) return installationJson.access_token;
+    }
     sys.logs.info("[googledrive] Getting access token from oauth");
     return dependencies.oauth.functions.connectUser('googledrive:userConnected');
 }
@@ -61,8 +131,13 @@ exports.testFunction = function () {
  * @return {void} The access token removed on the storage.
  */
 exports.removeAccessToken = function () {
-    sys.logs.info("[googledrive] Removing access token from oauth");
-    return dependencies.oauth.functions.disconnectUser('googledrive:disconnectUser');
+    sys.logs.info("[googledrive] Removing access token");
+    if (config.get("authenticationMethod") === 'serviceAccount') {
+        sys.storage.remove('installationInfo-googledrive-User-' +  sys.context.getCurrentUserRecord().id());            
+    } else {
+        dependencies.oauth.functions.disconnectUser('googledrive:disconnectUser');
+    }
+     
 }
 
 /****************************************************
@@ -98,20 +173,6 @@ exports.post = function(path, httpOptions, callbackData, callbacks) {
 };
 
 /**
- * Sends an HTTP PUT request to the specified URL with the provided HTTP options.
- *
- * @param {string} path         - The path to send the PUT request to.
- * @param {object} httpOptions  - The options to be included in the PUT request check http-service documentation.
- * @param {object} callbackData - Additional data to be passed to the callback functions. [optional]
- * @param {object} callbacks    - The callback functions to be called upon completion of the POST request. [optional]
- * @return {object}             - The response of the PUT request.
- */
-exports.put = function(path, httpOptions, callbackData, callbacks) {
-    let options = checkHttpOptions(path, httpOptions);
-    return httpService.put(GoogleDrive(options), callbackData, callbacks);
-};
-
-/**
  * Sends an HTTP PATCH request to the specified URL with the provided HTTP options.
  *
  * @param {string} path         - The path to send the PATCH request to.
@@ -137,34 +198,6 @@ exports.patch = function(path, httpOptions, callbackData, callbacks) {
 exports.delete = function(path, httpOptions, callbackData, callbacks) {
     let options = checkHttpOptions(path, httpOptions);
     return httpService.delete(GoogleDrive(options), callbackData, callbacks);
-};
-
-/**
- * Sends an HTTP HEAD request to the specified URL with the provided HTTP options.
- *
- * @param {string} path         - The path to send the HEAD request to.
- * @param {object} httpOptions  - The options to be included in the HEAD request check http-service documentation.
- * @param {object} callbackData - Additional data to be passed to the callback functions. [optional]
- * @param {object} callbacks    - The callback functions to be called upon completion of the HEAD request. [optional]
- * @return {object}             - The response of the HEAD request.
- */
-exports.head = function(path, httpOptions, callbackData, callbacks) {
-    let options = checkHttpOptions(path, httpOptions);
-    return httpService.head(GoogleDrive(options), callbackData, callbacks);
-};
-
-/**
- * Sends an HTTP OPTIONS request to the specified URL with the provided HTTP options.
- *
- * @param {string} path         - The path to send the OPTIONS request to.
- * @param {object} httpOptions  - The options to be included in the OPTIONS request check http-service documentation.
- * @param {object} callbackData - Additional data to be passed to the callback functions. [optional]
- * @param {object} callbacks    - The callback functions to be called upon completion of the OPTIONS request. [optional]
- * @return {object}             - The response of the OPTIONS request.
- */
-exports.options = function(path, httpOptions, callbackData, callbacks) {
-    let options = checkHttpOptions(path, httpOptions);
-    return httpService.options(GoogleDrive(options), callbackData, callbacks);
 };
 
 exports.utils = {
@@ -239,22 +272,22 @@ exports.utils = {
  * @return {boolean}                    - True if the signature is valid, false otherwise.
  */
 exports.utils.verifySignature = function (body, signature, signature256) {
-    sys.logs.info("Checking signature");
+    sys.logs.info("[googledrive] Checking signature");
     let verified = true;
     let verified256 = true;
     let secret = config.get("webhookSecret");
     if (!body || body === "") {
-        sys.logs.warn("The body is null or empty");
+        sys.logs.warn("[googledrive] The body is null or empty");
         return false;
     }
     if (!secret || secret === "" || !signature || signature === "" ||
         !sys.utils.crypto.verifySignatureWithHmac(body, signature.replace("sha1=",""), secret, "HmacSHA1")) {
-        sys.logs.warn("Invalid signature sha1");
+        sys.logs.warn("[googledrive] Invalid signature sha1");
         verified = false;
     }
     if (!secret || secret === "" ||  !signature256 ||!signature256 ||
         !sys.utils.crypto.verifySignatureWithHmac(body, signature.replace("sha256=",""), secret, "HmacSHA256")) {
-        sys.logs.warn("Invalid signature sha 256");
+        sys.logs.warn("[googledrive] Invalid signature sha 256");
         verified256 = false;
     }
 
@@ -329,8 +362,9 @@ function setAuthorization(options) {
     sys.logs.debug('[googledrive] setting authorization');
     authorization = mergeJSON(authorization, {
         type: "oauth2",
-        accessToken: sys.storage.get(
-            'installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true}),
+        accessToken: config.get("authenticationMethod") === 'oauth' ? 
+                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true}) :
+                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true}).token,
         headerPrefix: "Bearer"
     });
     options.authorization = authorization;

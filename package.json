@@ -1,6 +1,6 @@
 {
     "name": "googledrive",
-    "label": "Google Drive Package",
+    "label": "Google Drive",
     "dependencies": [
         {
             "type": "service",
@@ -11,37 +11,77 @@
         {
             "type": "package",
             "name": "oauth",
-            "version": "v1.0.33"
+            "version": "v1.0.34"
         }
     ],
     "configurationBuilder": "/configurationBuilder.js",
     "configuration": [
         {
-            "label": "Client Id",
+            "name": "authenticationMethod",
+            "label": "Authentication Method",
+            "required": true,
+            "defaultValue": "oauth",
+            "type": "buttonsGroup",
+            "typeOptions": {
+                "allowCustom": false,
+                "possibleValues": [
+                    {
+                        "label": "Service Account",
+                        "name": "serviceAccount"
+                    },
+                    {
+                        "label": "OAuth 2.0",
+                        "name": "oauth"
+                    }
+                ]
+            }
+        },
+        {
             "name": "clientId",
+            "label": "Client ID",
             "description": "The ID for your client application registered with the API provider.",
             "required": "true",
-            "type": "text"
+            "type": "text",
+            "visibility": "config.authenticationMethod == 'oauth'"
         },
         {
-            "label": "Client Secret",
             "name": "clientSecret",
+            "label": "Client Secret",
             "description": "The client secret given to you by the API provider",
             "required": "true",
-            "type": "text"
+            "type": "text",
+            "visibility": "config.authenticationMethod == 'oauth'"
         },
         {
-            "label": "State",
             "name": "state",
+            "label": "State",
             "description": "An opaque value to prevent cross-site request forgery.",
-            "type": "text"
+            "type": "text",
+            "visibility": "config.authenticationMethod == 'oauth'"
         },
         {
             "name": "oauthCallback",
-            "label": "OAuth callback",
+            "label": "OAuth Callback",
             "description": "The OAuth callback to configure in your Google Drive App",
             "type": "label",
-            "value": "config.AUTH_CALLBACK_URL+'/authCallback'"
+            "value": "config.AUTH_CALLBACK_URL+'/authCallback'",
+            "visibility": "config.authenticationMethod == 'oauth'"
+        },
+        {
+            "name": "serviceAccountEmail",
+            "label": "Service Account Email",
+            "description": "The email from service account created",
+            "type": "text",
+            "required": true,
+            "visibility": "config.authenticationMethod == 'serviceAccount'"
+        },
+        {
+            "name": "privateKey",
+            "label": "Private Key",
+            "description": "The private key associated to the service account",
+            "type": "password",
+            "required": true,
+            "visibility": "config.authenticationMethod == 'serviceAccount'"
         },
         {
             "name": "webhooksUrl",
@@ -53,6 +93,7 @@
         {
             "name": "GOOGLEDRIVE_API_BASE_URL",
             "label": "Googledrive Api Url",
+            "description": "The URL of the Google Drive API where the requests are performed.",
             "type": "label",
             "value": "https://www.googleapis.com/drive/v3"
         }
@@ -74,6 +115,11 @@
             "type": "script",
             "namespace": "api",
             "path": "/scripts/api.js"
+        },
+        {
+            "type": "listener",
+            "namespace": "webhook",
+            "path": "/listeners/webhook.js"
         }
     ]
 }
