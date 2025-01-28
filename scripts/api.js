@@ -53,9 +53,8 @@ for (let key in httpDependency) {
  */
 exports.getAccessToken = function () {
     if (config.get("authenticationMethod") === 'serviceAccount') {
-        const installationJson = getAccessTokenForAccount();
-        if (installationJson !== null) 
-            return installationJson.token;
+        const installationInfo = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true});
+        return installationInfo !== null && installationInfo !== undefined ? installationInfo.token : getAccessTokenForAccount();
     }
     sys.logs.info("[googledrive] Getting access token from oauth");
     return dependencies.oauth.functions.connectUser('googledrive:userConnected');
