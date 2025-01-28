@@ -306,7 +306,7 @@ function setAuthorization(options) {
         token = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true});
     } else {
         const installationInfo = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true});
-        if (installationInfo !== null) token = installationInfo.token;
+        token = installationInfo !== null ? installationInfo.token : getAccessTokenForAccount();
     }
     authorization = mergeJSON(authorization, {
         type: "oauth2",
