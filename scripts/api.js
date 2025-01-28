@@ -54,7 +54,8 @@ for (let key in httpDependency) {
 exports.getAccessToken = function () {
     if (config.get("authenticationMethod") === 'serviceAccount') {
         const installationJson = getAccessTokenForAccount();
-        if (installationJson !== null) return installationJson.access_token;
+        if (installationJson !== null) 
+            return installationJson.token;
     }
     sys.logs.info("[googledrive] Getting access token from oauth");
     return dependencies.oauth.functions.connectUser('googledrive:userConnected');
@@ -300,11 +301,16 @@ function setRequestHeaders(options) {
 function setAuthorization(options) {
     let authorization = options.authorization || {};
     sys.logs.debug('[googledrive] setting authorization');
+    let token;
+    if (config.get("authenticationMethod") === 'oauth') {
+        token = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true});
+    } else {
+        const installationInfo = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true});
+        if (installationInfo !== null) token = installationInfo.token;
+    }
     authorization = mergeJSON(authorization, {
         type: "oauth2",
-        accessToken: config.get("authenticationMethod") === 'oauth' ? 
-                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true}) :
-                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true}).token,
+        accessToken: token,
         headerPrefix: "Bearer"
     });
     options.authorization = authorization;
