@@ -5,8 +5,7 @@
         {
             "type": "service",
             "name": "http",
-            "version": "v1.7.0",
-            "instanceId": "shared"
+            "version": "v1.8.0"
         },
         {
             "type": "package",
@@ -16,6 +15,13 @@
     ],
     "configurationBuilder": "/configurationBuilder.js",
     "configuration": [
+        {
+            "name": "GOOGLEDRIVE_API_BASE_URL",
+            "label": "Googledrive Api Url",
+            "description": "The URL of the Google Drive API where the requests are performed.",
+            "type": "label",
+            "value": "https://www.googleapis.com/drive/v3"
+        },
         {
             "name": "authenticationMethod",
             "label": "Authentication Method",
@@ -89,13 +95,6 @@
             "description": "The URL to configure in webhooks of your Google Drive App",
             "type": "label",
             "value": "config.WEBHOOK_URL"
-        },
-        {
-            "name": "GOOGLEDRIVE_API_BASE_URL",
-            "label": "Googledrive Api Url",
-            "description": "The URL of the Google Drive API where the requests are performed.",
-            "type": "label",
-            "value": "https://www.googleapis.com/drive/v3"
         }
     ],
     "events": [
