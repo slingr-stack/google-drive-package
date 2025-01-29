@@ -45,66 +45,6 @@ for (let key in httpDependency) {
     if (typeof httpDependency[key] === 'function') httpService[key] = createWrapperFunction(httpDependency[key]);
 }
 
-function getAccessTokenForAccount() {
-    const account = sys.context.getCurrentUserRecord().id();
-    sys.logs.info('[googledrive] Getting access token for account: ' + account);
-    let installationJson = sys.storage.get('installationInfo-googledrive-User-' + account) || {id: null};
-    let token = installationJson.token || null;
-    let expiration = installationJson.expiration || 0;
-    if (!!token || expiration < new Date()) {
-        sys.logs.info('[googledrive] Access token is expired or not found. Getting new token');
-        const res = httpService.post(
-            {
-                url: "https://oauth2.googleapis.com/token",
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: {
-                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                    assertion: getJsonWebToken()
-                }
-            });
-        token = res.access_token;
-        let expires_at = res.expires_in;
-        expiration = expires_at * 1000 +  + new Date().getTime();
-        installationJson = mergeJSON(installationJson, {"token": token, "expiration": expiration});
-        if (token === null || token === undefined || (typeof token === 'string' && token.trim() === '')) {
-            sys.logs.error("[googledrive] The access_token is null or empty");
-            return null;
-        }
-        sys.logs.info('[googledrive] Saving new token for account: ' + account);
-        sys.storage.put('installationInfo-googledrive-User-' + account, installationJson);
-    }
-    return token;
-}
-
-function getJsonWebToken() {
-    let currentTime = new Date().getTime();
-    let futureTime = new Date(currentTime + ( 10 * 60 * 1000)).getTime();
-    return sys.utils.crypto.jwt.generate(
-        {
-            iss: config.get("serviceAccountEmail"),
-            aud: "https://oauth2.googleapis.com/token",
-            scope: "https://www.googleapis.com/auth/drive",
-            iat: currentTime,
-            exp: futureTime
-        },
-        config.get("privateKey"),
-        "RS256"
-    )
-}
-
-function mergeJSON (json1, json2) {
-    const result = {};
-    let key;
-    for (key in json1) {
-        if(json1.hasOwnProperty(key)) result[key] = json1[key];
-    }
-    for (key in json2) {
-        if(json2.hasOwnProperty(key)) result[key] = json2[key];
-    }
-    return result;
-}
 
 /**
  * Retrieves the access token.
@@ -113,8 +53,8 @@ function mergeJSON (json1, json2) {
  */
 exports.getAccessToken = function () {
     if (config.get("authenticationMethod") === 'serviceAccount') {
-        const installationJson = getAccessTokenForAccount();
-        if (installationJson !== null) return installationJson.access_token;
+        const installationInfo = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true});
+        return installationInfo !== null && installationInfo !== undefined ? installationInfo.token : getAccessTokenForAccount();
     }
     sys.logs.info("[googledrive] Getting access token from oauth");
     return dependencies.oauth.functions.connectUser('googledrive:userConnected');
@@ -360,15 +300,69 @@ function setRequestHeaders(options) {
 function setAuthorization(options) {
     let authorization = options.authorization || {};
     sys.logs.debug('[googledrive] setting authorization');
+    let token;
+    if (config.get("authenticationMethod") === 'oauth') {
+        token = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true});
+    } else {
+        const installationInfo = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true});
+        token = installationInfo !== null && installationInfo !== undefined ? installationInfo.token : getAccessTokenForAccount();
+    }
     authorization = mergeJSON(authorization, {
         type: "oauth2",
-        accessToken: config.get("authenticationMethod") === 'oauth' ? 
-                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true}) :
-                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true}).token,
+        accessToken: token,
         headerPrefix: "Bearer"
     });
     options.authorization = authorization;
     return options;
+}
+
+function getAccessTokenForAccount() {
+    const account = sys.context.getCurrentUserRecord().id();
+    sys.logs.info('[googledrive] Getting access token for account: ' + account);
+    let installationJson = sys.storage.get('installationInfo-googledrive-User-' + account) || {id: null};
+    let token = installationJson.token || null;
+    let expiration = installationJson.expiration || 0;
+    if (!!token || expiration < new Date()) {
+        sys.logs.info('[googledrive] Access token is expired or not found. Getting new token');
+        const res = httpService.post(
+            {
+                url: "https://oauth2.googleapis.com/token",
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: {
+                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                    assertion: getJsonWebToken()
+                }
+            });
+        token = res.access_token;
+        let expires_at = res.expires_in;
+        expiration = expires_at * 1000 +  + new Date().getTime();
+        installationJson = mergeJSON(installationJson, {"token": token, "expiration": expiration});
+        if (token === null || token === undefined || (typeof token === 'string' && token.trim() === '')) {
+            sys.logs.error("[googledrive] The access_token is null or empty");
+            return null;
+        }
+        sys.logs.info('[googledrive] Saving new token for account: ' + account);
+        sys.storage.put('installationInfo-googledrive-User-' + account, installationJson);
+    }
+    return token;
+}
+
+function getJsonWebToken() {
+    let currentTime = new Date().getTime();
+    let futureTime = new Date(currentTime + ( 10 * 60 * 1000)).getTime();
+    return sys.utils.crypto.jwt.generate(
+        {
+            iss: config.get("serviceAccountEmail"),
+            aud: "https://oauth2.googleapis.com/token",
+            scope: "https://www.googleapis.com/auth/drive",
+            iat: currentTime,
+            exp: futureTime
+        },
+        config.get("privateKey"),
+        "RS256"
+    )
 }
 
 function mergeJSON (json1, json2) {
