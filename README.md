@@ -125,6 +125,17 @@ You can make `GET`,`POST`,`DELETE`,`PATCH` requests to the [Google Drive API](ht
 const response = pkg.googledrive.api.get('/about?fields=user')
 ```
 
+### Create a folder
+
+```js
+log(JSON.stringify(pkg.googledrive.api.post("/files",{
+    body: {
+      mimeType: "application/vnd.google-apps.folder",
+      name: "test"
+    }
+  })));
+```
+
 ### Subscribes to file changes.
 
 ```javascript
