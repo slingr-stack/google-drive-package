@@ -300,7 +300,7 @@ function setRequestHeaders(options) {
 }
 
 function setAuthorization(options) {
-    let authorization = options.authorization || {};
+    let headers = options.headers || {};
     sys.logs.debug('[googledrive] setting authorization');
     let token;
     if (config.get("authenticationMethod") === 'oauth') {
@@ -309,12 +309,8 @@ function setAuthorization(options) {
         const installationInfo = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true});
         token = installationInfo !== null && installationInfo !== undefined ? installationInfo.token : getAccessTokenForAccount();
     }
-    authorization = mergeJSON(authorization, {
-        type: "oauth2",
-        accessToken: token,
-        headerPrefix: "Bearer"
-    });
-    options.authorization = authorization;
+    headers = mergeJSON(headers, {"Authorization": "Bearer "+token});
+    options.headers = headers;
     return options;
 }
 
