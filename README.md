@@ -130,6 +130,30 @@ log(JSON.stringify(pkg.googledrive.api.post("/files",{
   })));
 ```
 
+### Uploads a file
+
+```js
+let file = sys.data.createRecord('archivos');
+file.field('file').val({
+  name: 'test1.txt',
+  contentType: 'text/plain',
+  content: 'dGVzdCBmaWxlIQ=='
+});
+file = sys.data.save(file);
+try {
+  log(JSON.stringify(pkg.googledrive.api.upload(file.field('file').id(), "test.txt", "16ulE6ZQP4gPUYaM8KYhSa9Cj9lWXXtak")));
+} catch (e) {
+  log("Full error: " + JSON.stringify(e));
+  log("Short error description: " + JSON.stringify(e.message));
+  log("Internal error: " + JSON.stringify(e.error));
+  log("Error description: " + JSON.stringify(e.additionalInfo.body.description));
+  log("Timestamp: " + JSON.stringify(e.additionalInfo.headers.date));
+  log("Status code: " + JSON.stringify(e.additionalInfo.status));
+  log("Body: " + JSON.stringify(e.additionalInfo.body));
+  log("Headers: " + JSON.stringify(e.additionalInfo.headers));
+}
+```
+
 ### Subscribes to file changes.
 
 ```javascript

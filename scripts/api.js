@@ -45,7 +45,6 @@ for (let key in httpDependency) {
     if (typeof httpDependency[key] === 'function') httpService[key] = createWrapperFunction(httpDependency[key]);
 }
 
-
 /**
  * Retrieves the access token.
  *
@@ -58,11 +57,6 @@ exports.getAccessToken = function () {
     }
     sys.logs.info("[googledrive] Getting access token from oauth");
     return dependencies.oauth.functions.connectUser('googledrive:userConnected');
-}
-
-exports.testFunction = function () {
-    sys.logs.info("[googledrive] Testing oauth");
-    return dependencies.oauth.functions.testFunction('googledrive:testFunction');
 }
 
 /**
@@ -84,7 +78,54 @@ exports.removeAccessToken = function () {
  Public API - Generic Functions
  ****************************************************/
 
-exports.upload = function(fileId, fileName, mimeType, parentFolderId, callbackData, callbacks) {
+/**
+ * Sends an HTTP POST request to upload a file to Google Drive using a multipart upload.
+ *
+ * The MIME type of the file is automatically inferred from the fileName extension.
+ * If the extension does not match any supported type, "application/octet-stream" is used by default.
+ *
+ * Supported MIME Types by File Extension:
+ *
+ * | Document Type | Format                                             | MIME Type                                                              | File Extension |
+ * |---------------|----------------------------------------------------|------------------------------------------------------------------------|----------------|
+ * | Documents     | Microsoft Word                                     | application/vnd.openxmlformats-officedocument.wordprocessingml.document| .docx          |
+ * | Documents     | OpenDocument                                       | application/vnd.oasis.opendocument.text                                | .odt           |
+ * | Documents     | Rich Text                                          | application/rtf                                                        | .rtf           |
+ * | Documents     | PDF                                                | application/pdf                                                        | .pdf           |
+ * | Documents     | Plain Text                                         | text/plain                                                             | .txt           |
+ * | Documents     | Web Page (HTML)                                    | application/zip                                                        | .zip           |
+ * | Documents     | EPUB                                               | application/epub+zip                                                   | .epub          |
+ * | Documents     | Markdown                                           | text/markdown                                                          | .md            |
+ * | Spreadsheets  | Microsoft Excel                                    | application/vnd.openxmlformats-officedocument.spreadsheetml.sheet        | .xlsx          |
+ * | Spreadsheets  | OpenDocument                                       | application/x-vnd.oasis.opendocument.spreadsheet                        | .ods           |
+ * | Spreadsheets  | PDF                                                | application/pdf                                                        | .pdf           |
+ * | Spreadsheets  | Web Page (HTML)                                    | application/zip                                                        | .zip           |
+ * | Spreadsheets  | Comma-Separated Values (first sheet only)          | text/csv                                                               | .csv           |
+ * | Spreadsheets  | Tab-Separated Values (first sheet only)            | text/tab-separated-values                                              | .tsv           |
+ * | Presentations | Microsoft PowerPoint                               | application/vnd.openxmlformats-officedocument.presentationml.presentation| .pptx         |
+ * | Presentations | ODP                                                | application/vnd.oasis.opendocument.presentation                        | .odp           |
+ * | Presentations | PDF                                                | application/pdf                                                        | .pdf           |
+ * | Presentations | Plain Text                                         | text/plain                                                             | .txt           |
+ * | Presentations | JPEG (first slide only)                            | image/jpeg                                                             | .jpg           |
+ * | Presentations | PNG (first slide only)                             | image/png                                                              | .png           |
+ * | Presentations | Scalable Vector Graphics (first slide only)        | image/svg+xml                                                          | .svg           |
+ * | Drawings      | PDF                                                | application/pdf                                                        | .pdf           |
+ * | Drawings      | JPEG                                               | image/jpeg                                                             | .jpg           |
+ * | Drawings      | PNG                                                | image/png                                                              | .png           |
+ * | Drawings      | Scalable Vector Graphics                           | image/svg+xml                                                          | .svg           |
+ * | Apps Script   | JSON                                               | application/vnd.google-apps.script+json                                | .json          |
+ * | Google Vids   | MP4                                                | application/vnd.google-apps.vid                                        | .mp4           |
+ *
+ * @param {string} fileId         - The identifier of the file to be uploaded.
+ * @param {string} fileName       - The name of the file, used to determine its MIME type from the extension.
+ *                                  If not provided, "fileName" is used by default.
+ * @param {string} parentFolderId - The identifier of the destination folder in Google Drive.
+ * @param {object} callbackData   - Additional data to be passed to the callback functions. [optional]
+ * @param {object} callbacks      - The callback functions to be called upon completion of the upload request. [optional]
+ * @return {object}               - The response of the POST request to upload the file.
+ */
+exports.upload = function(fileId, fileName, parentFolderId, callbackData, callbacks) {
+    let mimeType = getMimeTypeFromFileName(fileName) || "application/octet-stream";
     let options = {
         upload: true,
         headers: {
@@ -95,7 +136,7 @@ exports.upload = function(fileId, fileName, mimeType, parentFolderId, callbackDa
         },
         body: {
             name: fileName || "fileName",
-            mimeType: mimeType || "application/octet-stream",
+            mimeType: mimeType,
             parents: [
                 parentFolderId
             ]
@@ -108,7 +149,7 @@ exports.upload = function(fileId, fileName, mimeType, parentFolderId, callbackDa
                     contentType: "application/json",
                     content: {
                         name: fileName || 'metadata',
-                        mimeType: mimeType || 'application/octet-stream',
+                        mimeType: mimeType,
                         parents: [
                             parentFolderId
                         ]
@@ -123,7 +164,7 @@ exports.upload = function(fileId, fileName, mimeType, parentFolderId, callbackDa
         }
     }
     return httpService.post(GoogleDrive(options), callbackData, callbacks);
-}
+};
 
 /**
  * Sends an HTTP GET request to the specified URL with the provided HTTP options.
@@ -185,6 +226,18 @@ exports.delete = function(path, httpOptions, callbackData, callbacks) {
  Private helpers
  ****************************************************/
 
+/**
+ * Checks and formats HTTP options based on the provided path and options.
+ *
+ * - If `path` is an object, it is treated as the options object.
+ * - If `path` is a string and the options already contain properties such as `path`, `params`, or `body`,
+ *   the provided string is assigned to `options.path`.
+ * - Otherwise, a new options object is created with `path` as the URL path and the provided options as the body.
+ *
+ * @param {string|object} path - The request path as a string, or an options object.
+ * @param {object} [options={}] - The HTTP options or the body to be sent.
+ * @return {object} The formatted HTTP options.
+ */
 function checkHttpOptions (path, options) {
     options = options || {};
     if (!!path) {
@@ -207,11 +260,84 @@ function checkHttpOptions (path, options) {
     return options;
 }
 
+/**
+ * Checks if a given value is a plain object.
+ *
+ * This function returns true if `obj` is not falsy and its type string is "[object Object]".
+ *
+ * @param {*} obj - The value to check.
+ * @return {boolean} True if `obj` is a plain object, false otherwise.
+ */
 function isObject (obj) {
     return !!obj && stringType(obj) === '[object Object]'
 }
 
+/**
+ * A helper function that returns the type string of an object.
+ *
+ * This is a bound version of Object.prototype.toString, which can be used to determine the internal
+ * [[Class]] of an object. For example, calling stringType({}) will return "[object Object]".
+ *
+ * @param {*} obj - The object to determine the type of.
+ * @return {string} The type string of the object.
+ */
 let stringType = Function.prototype.call.bind(Object.prototype.toString)
+
+/**
+ * Infers the MIME type from a file name based on its extension.
+ *
+ * Supported extensions and corresponding MIME types:
+ * - .docx: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+ * - .odt: application/vnd.oasis.opendocument.text
+ * - .rtf: application/rtf
+ * - .pdf: application/pdf
+ * - .txt: text/plain
+ * - .zip: application/zip
+ * - .epub: application/epub+zip
+ * - .md: text/markdown
+ * - .xlsx: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+ * - .ods: application/x-vnd.oasis.opendocument.spreadsheet
+ * - .csv: text/csv
+ * - .tsv: text/tab-separated-values
+ * - .pptx: application/vnd.openxmlformats-officedocument.presentationml.presentation
+ * - .odp: application/vnd.oasis.opendocument.presentation
+ * - .jpg: image/jpeg
+ * - .png: image/png
+ * - .svg: image/svg+xml
+ * - .json: application/vnd.google-apps.script+json
+ * - .mp4: application/vnd.google-apps.vid
+ *
+ * @param {string} fileName - The name of the file from which to infer the MIME type.
+ * @return {string|null} The inferred MIME type, or null if the extension is not supported.
+ */
+function getMimeTypeFromFileName(fileName) {
+    if (!fileName) return null;
+    const extIndex = fileName.lastIndexOf('.');
+    if (extIndex === -1) return null; // No extension found
+    const extension = fileName.slice(extIndex).toLowerCase();
+    const mimeMap = {
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        '.odt': 'application/vnd.oasis.opendocument.text',
+        '.rtf': 'application/rtf',
+        '.pdf': 'application/pdf',
+        '.txt': 'text/plain',
+        '.zip': 'application/zip',
+        '.epub': 'application/epub+zip',
+        '.md': 'text/markdown',
+        '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        '.ods': 'application/x-vnd.oasis.opendocument.spreadsheet',
+        '.csv': 'text/csv',
+        '.tsv': 'text/tab-separated-values',
+        '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        '.odp': 'application/vnd.oasis.opendocument.presentation',
+        '.jpg': 'image/jpeg',
+        '.png': 'image/png',
+        '.svg': 'image/svg+xml',
+        '.json': 'application/vnd.google-apps.script+json',
+        '.mp4': 'application/vnd.google-apps.vid'
+    };
+    return mimeMap[extension] || null;
+}
 
 /****************************************************
  Constants
