@@ -16,13 +16,6 @@
     "configurationBuilder": "/configurationBuilder.js",
     "configuration": [
         {
-            "name": "GOOGLEDRIVE_API_BASE_URL",
-            "label": "Googledrive Api Url",
-            "description": "The URL of the Google Drive API where the requests are performed.",
-            "type": "label",
-            "value": "https://www.googleapis.com/drive/v3"
-        },
-        {
             "name": "authenticationMethod",
             "label": "Authentication Method",
             "required": true,

@@ -84,6 +84,38 @@ exports.removeAccessToken = function () {
  Public API - Generic Functions
  ****************************************************/
 
+exports.upload = function(fileId, fileName, mimeType, parentFolderId, callbackData, callbacks) {
+    let options = {
+        upload: true,
+        headers: {
+            "Content-Type": "multipart/related"
+        },
+        params: {
+            uploadType: "multipart"
+        },
+        body: {
+            name: fileName || "file",
+            mimeType: mimeType || "application/octet-stream",
+            parents: [parentFolderId]
+        },
+        settings: {
+            multipart: true,
+            parts: [
+                {
+                    name: 'file',
+                    type: 'file',
+                    fileId: fileId
+                },
+                {
+                    name: 'description.txt',
+                    content: 'this is a description of the document'
+                }
+            ]
+        }
+    }
+    return httpService.post(GoogleDrive(options), callbackData, callbacks);
+}
+
 /**
  * Sends an HTTP GET request to the specified URL with the provided HTTP options.
  *
@@ -140,100 +172,6 @@ exports.delete = function(path, httpOptions, callbackData, callbacks) {
     return httpService.delete(GoogleDrive(options), callbackData, callbacks);
 };
 
-exports.utils = {
-
-    /**
-     * Converts a given date to a timestamp.
-     *
-     * @param {number | string} params      - The date to be converted.
-     * @return {object}                     - An object containing the timestamp.
-     */
-    fromDateToTimestamp: function(params) {
-        if (!!params) {
-            return {timestamp: new Date(params).getTime()};
-        }
-        return null;
-    },
-
-    /**
-     * Converts a timestamp to a date object.
-     *
-     * @param {number} timestamp            - The timestamp to convert.
-     * @return {object}                     - The date object representing the timestamp.
-     */
-    fromTimestampToDate: function(timestamp) {
-        return new Date(timestamp);
-    },
-
-    /**
-     * Gets a configuration from the properties.
-     *
-     * @param {string} property             - The name of the property to get.
-     *                                          If it is empty, return the entire configuration object.
-     * @return {string}                     - The value of the property or the whole object as string.
-     */
-    getConfiguration: function (property) {
-        if (!property) {
-            sys.logs.debug('[googleDrive] Get configuration');
-            return JSON.stringify(config.get());
-        }
-        sys.logs.debug('[googleDrive] Get property: '+property);
-        return config.get(property);
-    },
-
-    /**
-     * Concatenates a path with a param query and its value.
-     *
-     * @param path                          - The path to concatenate.
-     * @param key                           - The name of the param.
-     * @param value                         - The value of the param.
-     * @returns {string}                    - The concatenated path without coding parameters.
-     */
-    concatQuery: function (path, key, value) {
-        return path + ((!path || path.indexOf('?') < 0) ? '?' : '&') + key + "=" + value;
-    },
-
-    /**
-     * Merges two JSON objects into a single object.
-     *
-     * @param {Object} json1 - The first JSON object to be merged.
-     * @param {Object} json2 - The second JSON object to be merged.
-     * @return {Object} - The merged JSON object.
-     */
-    mergeJSON: mergeJSON,
-};
-
-/**
- * Verifies the signature of the given body using the provided signature coded in sha1 or sha256.
- *
- * @param {string} body                 - The body to be verified.
- * @param {string} signature            - The signature to be checked.
- * @param {string} signature256         - The signature256 to be checked.
- * @return {boolean}                    - True if the signature is valid, false otherwise.
- */
-exports.utils.verifySignature = function (body, signature, signature256) {
-    sys.logs.info("[googledrive] Checking signature");
-    let verified = true;
-    let verified256 = true;
-    let secret = config.get("webhookSecret");
-    if (!body || body === "") {
-        sys.logs.warn("[googledrive] The body is null or empty");
-        return false;
-    }
-    if (!secret || secret === "" || !signature || signature === "" ||
-        !sys.utils.crypto.verifySignatureWithHmac(body, signature.replace("sha1=",""), secret, "HmacSHA1")) {
-        sys.logs.warn("[googledrive] Invalid signature sha1");
-        verified = false;
-    }
-    if (!secret || secret === "" ||  !signature256 ||!signature256 ||
-        !sys.utils.crypto.verifySignatureWithHmac(body, signature.replace("sha256=",""), secret, "HmacSHA256")) {
-        sys.logs.warn("[googledrive] Invalid signature sha 256");
-        verified256 = false;
-    }
-
-    return (verified || verified256);
-};
-
 /****************************************************
  Private helpers
  ****************************************************/
@@ -267,6 +205,13 @@ function isObject (obj) {
 let stringType = Function.prototype.call.bind(Object.prototype.toString)
 
 /****************************************************
+ Constants
+ ****************************************************/
+
+const API_URL = "https://www.googleapis.com/drive/v3";
+const UPLOAD_URL = "https://www.googleapis.com/upload/drive/v3/files";
+
+/****************************************************
  Configurator
  ****************************************************/
 
@@ -283,10 +228,17 @@ let GoogleDrive = function (options) {
  ****************************************************/
 
 function setApiUri(options) {
-    let API_URL = config.get("GOOGLEDRIVE_API_BASE_URL");
     let url = options.path || "";
     options.url = API_URL + url;
-    sys.logs.debug('[googledrive] Set url: ' + options.path + "->" + options.url);
+    if (options.upload) {
+        options.url = UPLOAD_URL;
+        delete options.path;
+        delete options.upload;
+        sys.logs.debug('[googledrive] Set upload url');
+
+    } else {
+        sys.logs.debug('[googledrive] Set url: ' + options.path + "->" + options.url);
+    }
     return options;
 }
 
