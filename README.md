@@ -23,7 +23,7 @@ then create a Google Cloud project for your Google Drive app, then if you plan t
 - Create a service account and credentials and delegate domain-wide authority to it (assign ONLY the necessary scopes to your service - account) [Click here for instructions](https://cloud.google.com/iam/docs/manage-access-service-accounts?hl=es-419).
 - Download the JSON file with the service account credentials to get the service account private key.
 
-Otherwise if you plan to use OAuth 2.0 authentication method:
+Otherwise, if you plan to use OAuth 2.0 authentication method:
 
 - Enable the Drive API in your Google Cloud project.
 - Create a Client ID OAuth 2.0 account.
@@ -99,15 +99,19 @@ The URL to configure in webhooks of your Google Drive App.
 
 ### Storage Value And Offline Mode
 
-By default, the `Service Account` authorization method is used. When using this method, you can directly call the following method to retrieve the access token, without requiring any additional actions:
+By default, the `Service Account` authorization method is used. 
+When using this method, you can directly call the following method to retrieve the access token, without requiring any additional actions:
 
 `pkg.googledrive.api.getAccessToken();`
 
 This will return the access token, which will be securely stored in the application's storage and associated with a user by their ID.
 
-If you have enabled the `OAuth 2.0` authorization method, the same method is used. The difference is that the Google Drive package includes the `&access_type=offline` parameter, which allows the application to request a refresh token. This happens when calling the UI service (which should run during runtime, for example, by invoking the method within an action) to log in to the application.
+If you have enabled the `OAuth 2.0` authorization method, the same method is used. 
+The difference is that the Google Drive package includes the `&access_type=offline` parameter, which allows the application to request a refresh token. 
+This happens when calling the UI service (which should run during runtime, for example, by invoking the method within an action) to log in to the application.
 
-The Google service will return an object containing both the access token and the refresh token. Each token will be stored in the app's storage (accessible via the Monitor), where you can view them encrypted and associated with the user by ID.
+The Google service will return an object containing both the access token and the refresh token. 
+Each token will be stored in the app's storage (accessible via the Monitor), where you can view them encrypted and associated with the user by ID.
 
 # Javascript API
 
@@ -163,7 +167,7 @@ const body = {
   "id": "<use a unique UUID or any similar unique string>", // Your channel ID. Maximum length: 64 characters. 
   "type": "web_hook",
   "address": "https://mydomain.com/notifications", // Your receiving URL.
-  ...
+  //...
   "token": "target=myApp-myChangesChannelDest", // (Optional) Your changes channel token.
   "expiration": 1426325213000 // (Optional) Your requested channel expiration date and time.
 };
@@ -196,7 +200,10 @@ for more information about generic requests.
 
 ### Webhook
 
-Incoming webhook events are automatically captured by the default listener named `Catch HTTP google drive events`, which can be found below the `Scripts` section. Alternatively, you have the option to create a new package listener. For more information, please refer to the [Listeners Documentation](https://platform-docs.slingr.io/dev-reference/data-model-and-logic/listeners/). Please take a look at the google drive documentation of the [Webhooks](https://developers.google.com/drive/api/guides/push?hl=es-419) for more information.
+Incoming webhook events are automatically captured by the default listener named `Catch HTTP google drive events`, which can be found below the `Scripts` section. 
+Alternatively, you have the option to create a new package listener. 
+For more information, please refer to the [Listeners Documentation](https://platform-docs.slingr.io/dev-reference/data-model-and-logic/listeners/). 
+Please take a look at the Google Drive documentation of the [Webhooks](https://developers.google.com/drive/api/guides/push?hl=es-419) for more information.
 
 ## Dependencies
 * HTTP Service
