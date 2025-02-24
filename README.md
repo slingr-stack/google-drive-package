@@ -131,6 +131,8 @@ log(JSON.stringify(pkg.googledrive.api.post("/files",{
 ```
 
 ### Uploads a file
+[Google Drive API Documentation - Files: upload](https://developers.google.com/drive/api/reference/rest/v3/files/create)
+[Mime Types](https://developers.google.com/drive/api/guides/ref-export-formats)
 
 ```js
 let file = sys.data.createRecord('archivos');

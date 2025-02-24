@@ -120,12 +120,13 @@ exports.removeAccessToken = function () {
  * @param {string} fileName       - The name of the file, used to determine its MIME type from the extension.
  *                                  If not provided, "fileName" is used by default.
  * @param {string} parentFolderId - The identifier of the destination folder in Google Drive.
+ * @param {object} httpOptions  - The options to be included in the GET request check http-service documentation.
  * @param {object} callbackData   - Additional data to be passed to the callback functions. [optional]
  * @param {object} callbacks      - The callback functions to be called upon completion of the upload request. [optional]
  * @return {object}               - The response of the POST request to upload the file.
  */
-exports.upload = function(fileId, fileName, parentFolderId, callbackData, callbacks) {
-    let mimeType = getMimeTypeFromFileName(fileName) || "application/octet-stream";
+exports.upload = function(fileId, fileName, parentFolderId, httpOptions, callbackData, callbacks) {
+    const mimeType = getMimeTypeFromFileName(fileName) || "application/octet-stream";
     let options = {
         upload: true,
         headers: {
@@ -162,6 +163,11 @@ exports.upload = function(fileId, fileName, parentFolderId, callbackData, callba
                 }
             ]
         }
+    };
+    if (httpOptions) {
+        options.headers = mergeJSON(options.headers, httpOptions.headers);
+        options.params = mergeJSON(options.params, httpOptions.params);
+        options.settings = mergeJSON(options.settings, httpOptions.settings);
     }
     return httpService.post(GoogleDrive(options), callbackData, callbacks);
 };
