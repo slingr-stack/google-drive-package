@@ -104,10 +104,14 @@ exports.upload = function(fileId, fileName, mimeType, parentFolderId, callbackDa
             multipart: true,
             parts: [
                 {
-                    "Content-Type": "application/json",
-                    content: JSON.stringify({
+                    contentType: "application/json",
+                    content: {
                         name: fileName || 'metadata',
-                    })
+                        mimeType: mimeType || 'application/octet-stream',
+                        parents: [
+                            parentFolderId
+                        ]
+                    }
                 },
                 {
                     name: fileName || 'file',
