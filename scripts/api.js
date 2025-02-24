@@ -94,7 +94,7 @@ exports.upload = function(fileId, fileName, mimeType, parentFolderId, callbackDa
             uploadType: "multipart"
         },
         body: {
-            name: fileName || "file",
+            name: fileName || "fileName",
             mimeType: mimeType || "application/octet-stream",
             parents: [
                 parentFolderId
@@ -104,6 +104,7 @@ exports.upload = function(fileId, fileName, mimeType, parentFolderId, callbackDa
             multipart: true,
             parts: [
                 {
+                    type: 'other',
                     contentType: "application/json",
                     content: {
                         name: fileName || 'metadata',
@@ -114,8 +115,8 @@ exports.upload = function(fileId, fileName, mimeType, parentFolderId, callbackDa
                     }
                 },
                 {
-                    name: fileName || 'file',
-                    type: 'fileType',
+                    type: 'file',
+                    name: fileName || 'fileName',
                     fileId: fileId
                 }
             ]
