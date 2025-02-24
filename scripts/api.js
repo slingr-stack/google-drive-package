@@ -96,19 +96,23 @@ exports.upload = function(fileId, fileName, mimeType, parentFolderId, callbackDa
         body: {
             name: fileName || "file",
             mimeType: mimeType || "application/octet-stream",
-            parents: [parentFolderId]
+            parents: [
+                parentFolderId
+            ]
         },
         settings: {
             multipart: true,
             parts: [
                 {
-                    name: 'file',
-                    type: 'file',
-                    fileId: fileId
+                    "Content-Type": "application/json",
+                    content: JSON.stringify({
+                        name: fileName || 'metadata',
+                    })
                 },
                 {
-                    name: 'description.txt',
-                    content: 'this is a description of the document'
+                    name: fileName || 'file',
+                    type: 'fileType',
+                    fileId: fileId
                 }
             ]
         }
