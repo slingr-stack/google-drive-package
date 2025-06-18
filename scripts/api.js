@@ -47,12 +47,12 @@ for (let key in httpDependency) {
 }
 
 function getAccessTokenForAccount() {
-    const account = sys.context.getCurrentUserRecord().id();
+    const account = config.get("serviceAccountEmail");
     sys.logs.info('[googledrive] Getting access token for account: ' + account);
     let installationJson = sys.storage.get('installationInfo-googledrive-User-' + account) || {id: null};
     let token = installationJson.token || null;
     let expiration = installationJson.expiration || 0;
-    if (!!token || expiration < new Date()) {
+    if (!token || expiration < new Date()) {
         sys.logs.info('[googledrive] Access token is expired or not found. Getting new token');
         const res = httpService.post(
             {
@@ -134,7 +134,8 @@ exports.testFunction = function () {
 exports.removeAccessToken = function () {
     sys.logs.info("[googledrive] Removing access token");
     if (config.get("authenticationMethod") === 'serviceAccount') {
-        sys.storage.remove('installationInfo-googledrive-User-' +  sys.context.getCurrentUserRecord().id());            
+        const account = config.get("serviceAccountEmail");
+        sys.storage.remove('installationInfo-googledrive-User-' +  account);
     } else {
         dependencies.oauth.functions.disconnectUser('googledrive:disconnectUser');
     }
@@ -334,7 +335,7 @@ let stringType = Function.prototype.call.bind(Object.prototype.toString)
 let GoogleDrive = function (options) {
     options = options || {};
     options= setApiUri(options);
-    options= setRequestHeaders(options);
+    //options= setRequestHeaders(options);
     options = setAuthorization(options);
     return options;
 }
@@ -359,16 +360,21 @@ function setRequestHeaders(options) {
 }
 
 function setAuthorization(options) {
-    let authorization = options.authorization || {};
+    let headers = options.headers || {};
     sys.logs.debug('[googledrive] setting authorization');
-    authorization = mergeJSON(authorization, {
+    let token;
+    if(config.get("authenticationMethod") === 'oauth') {
+        token = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true})
+    } else {
+        const account = config.get("serviceAccountEmail");
+        let tokenJson = sys.storage.get('installationInfo-googledrive-account-' +account) || {};
+        token = tokenJson.token
+    }
+    headers = mergeJSON(headers, {
         type: "oauth2",
-        accessToken: config.get("authenticationMethod") === 'oauth' ? 
-                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true}) :
-                        sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true}).token,
-        headerPrefix: "Bearer"
+        Authorization: "Bearer "+token
     });
-    options.authorization = authorization;
+    options.headers = headers;
     return options;
 }
 

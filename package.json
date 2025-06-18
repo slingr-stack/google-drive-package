@@ -95,7 +95,7 @@
             "label": "Googledrive Api Url",
             "description": "The URL of the Google Drive API where the requests are performed.",
             "type": "label",
-            "value": "https://www.googleapis.com/drive/v3"
+            "value": "https://www.googleapis.com"
         }
     ],
     "events": [
