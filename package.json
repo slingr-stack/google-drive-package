@@ -88,6 +88,13 @@
             "description": "The URL to configure in webhooks of your Google Drive App",
             "type": "label",
             "value": "config.WEBHOOK_URL"
+        },
+        {
+            "name": "GOOGLEDRIVE_API_BASE_URL",
+            "label": "Googledrive Api Url",
+            "description": "The URL of the Google Drive API where the requests are performed.",
+            "type": "label",
+            "value": "https://www.googleapis.com"
         }
     ],
     "events": [
