@@ -14,7 +14,6 @@
     },
     callback: function(event) {
         sys.logs.info('[googledrive] Received Google Drive webhook. Processing and triggering a package event.', event);
-        sys.logs.info('[googledrive] Triggering google drive event [webhook]');
         sys.events.triggerEvent('googledrive:webhook', event.data);
     }
 };

@@ -114,16 +114,11 @@ function mergeJSON (json1, json2) {
  */
 exports.getAccessToken = function () {
     if (config.get("authenticationMethod") === 'serviceAccount') {
-        const installationJson = getAccessTokenForAccount();
-        if (installationJson !== null) return installationJson.access_token;
+        const installationInfo = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id(),{decrypt:true});
+        return installationInfo !== null && installationInfo !== undefined ? installationInfo.token : getAccessTokenForAccount();
     }
     sys.logs.info("[googledrive] Getting access token from oauth");
     return dependencies.oauth.functions.connectUser('googledrive:userConnected');
-}
-
-exports.testFunction = function () {
-    sys.logs.info("[googledrive] Testing oauth");
-    return dependencies.oauth.functions.testFunction('googledrive:testFunction');
 }
 
 /**
@@ -145,6 +140,100 @@ exports.removeAccessToken = function () {
 /****************************************************
  Public API - Generic Functions
  ****************************************************/
+
+/**
+ * Sends an HTTP POST request to upload a file to Google Drive using a multipart upload.
+ *
+ * The MIME type of the file is automatically inferred from the fileName extension.
+ * If the extension does not match any supported type, "application/octet-stream" is used by default.
+ *
+ * Supported MIME Types by File Extension:
+ *
+ * | Document Type | Format                                             | MIME Type                                                              | File Extension |
+ * |---------------|----------------------------------------------------|------------------------------------------------------------------------|----------------|
+ * | Documents     | Microsoft Word                                     | application/vnd.openxmlformats-officedocument.wordprocessingml.document| .docx          |
+ * | Documents     | OpenDocument                                       | application/vnd.oasis.opendocument.text                                | .odt           |
+ * | Documents     | Rich Text                                          | application/rtf                                                        | .rtf           |
+ * | Documents     | PDF                                                | application/pdf                                                        | .pdf           |
+ * | Documents     | Plain Text                                         | text/plain                                                             | .txt           |
+ * | Documents     | Web Page (HTML)                                    | application/zip                                                        | .zip           |
+ * | Documents     | EPUB                                               | application/epub+zip                                                   | .epub          |
+ * | Documents     | Markdown                                           | text/markdown                                                          | .md            |
+ * | Spreadsheets  | Microsoft Excel                                    | application/vnd.openxmlformats-officedocument.spreadsheetml.sheet        | .xlsx          |
+ * | Spreadsheets  | OpenDocument                                       | application/x-vnd.oasis.opendocument.spreadsheet                        | .ods           |
+ * | Spreadsheets  | PDF                                                | application/pdf                                                        | .pdf           |
+ * | Spreadsheets  | Web Page (HTML)                                    | application/zip                                                        | .zip           |
+ * | Spreadsheets  | Comma-Separated Values (first sheet only)          | text/csv                                                               | .csv           |
+ * | Spreadsheets  | Tab-Separated Values (first sheet only)            | text/tab-separated-values                                              | .tsv           |
+ * | Presentations | Microsoft PowerPoint                               | application/vnd.openxmlformats-officedocument.presentationml.presentation| .pptx         |
+ * | Presentations | ODP                                                | application/vnd.oasis.opendocument.presentation                        | .odp           |
+ * | Presentations | PDF                                                | application/pdf                                                        | .pdf           |
+ * | Presentations | Plain Text                                         | text/plain                                                             | .txt           |
+ * | Presentations | JPEG (first slide only)                            | image/jpeg                                                             | .jpg           |
+ * | Presentations | PNG (first slide only)                             | image/png                                                              | .png           |
+ * | Presentations | Scalable Vector Graphics (first slide only)        | image/svg+xml                                                          | .svg           |
+ * | Drawings      | PDF                                                | application/pdf                                                        | .pdf           |
+ * | Drawings      | JPEG                                               | image/jpeg                                                             | .jpg           |
+ * | Drawings      | PNG                                                | image/png                                                              | .png           |
+ * | Drawings      | Scalable Vector Graphics                           | image/svg+xml                                                          | .svg           |
+ * | Apps Script   | JSON                                               | application/vnd.google-apps.script+json                                | .json          |
+ * | Google Vids   | MP4                                                | application/vnd.google-apps.vid                                        | .mp4           |
+ *
+ * @param {string} fileId         - The identifier of the file to be uploaded.
+ * @param {string} fileName       - The name of the file, used to determine its MIME type from the extension.
+ *                                  If not provided, "fileName" is used by default.
+ * @param {string} parentFolderId - The identifier of the destination folder in Google Drive.
+ * @param {object} httpOptions  - The options to be included in the GET request check http-service documentation.
+ * @param {object} callbackData   - Additional data to be passed to the callback functions. [optional]
+ * @param {object} callbacks      - The callback functions to be called upon completion of the upload request. [optional]
+ * @return {object}               - The response of the POST request to upload the file.
+ */
+exports.upload = function(fileId, fileName, parentFolderId, httpOptions, callbackData, callbacks) {
+    const mimeType = getMimeTypeFromFileName(fileName) || "application/octet-stream";
+    let options = {
+        upload: true,
+        headers: {
+            "Content-Type": "multipart/related"
+        },
+        params: {
+            uploadType: "multipart"
+        },
+        body: {
+            name: fileName || "fileName",
+            mimeType: mimeType,
+            parents: [
+                parentFolderId
+            ]
+        },
+        settings: {
+            multipart: true,
+            parts: [
+                {
+                    type: 'other',
+                    contentType: "application/json",
+                    content: {
+                        name: fileName || 'metadata',
+                        mimeType: mimeType,
+                        parents: [
+                            parentFolderId
+                        ]
+                    }
+                },
+                {
+                    type: 'file',
+                    name: fileName || 'fileName',
+                    fileId: fileId
+                }
+            ]
+        }
+    };
+    if (httpOptions) {
+        options.headers = mergeJSON(options.headers, httpOptions.headers);
+        options.params = mergeJSON(options.params, httpOptions.params);
+        options.settings = mergeJSON(options.settings, httpOptions.settings);
+    }
+    return httpService.post(GoogleDrive(options), callbackData, callbacks);
+};
 
 /**
  * Sends an HTTP GET request to the specified URL with the provided HTTP options.
@@ -202,104 +291,22 @@ exports.delete = function(path, httpOptions, callbackData, callbacks) {
     return httpService.delete(GoogleDrive(options), callbackData, callbacks);
 };
 
-exports.utils = {
-
-    /**
-     * Converts a given date to a timestamp.
-     *
-     * @param {number | string} params      - The date to be converted.
-     * @return {object}                     - An object containing the timestamp.
-     */
-    fromDateToTimestamp: function(params) {
-        if (!!params) {
-            return {timestamp: new Date(params).getTime()};
-        }
-        return null;
-    },
-
-    /**
-     * Converts a timestamp to a date object.
-     *
-     * @param {number} timestamp            - The timestamp to convert.
-     * @return {object}                     - The date object representing the timestamp.
-     */
-    fromTimestampToDate: function(timestamp) {
-        return new Date(timestamp);
-    },
-
-    /**
-     * Gets a configuration from the properties.
-     *
-     * @param {string} property             - The name of the property to get.
-     *                                          If it is empty, return the entire configuration object.
-     * @return {string}                     - The value of the property or the whole object as string.
-     */
-    getConfiguration: function (property) {
-        if (!property) {
-            sys.logs.debug('[googleDrive] Get configuration');
-            return JSON.stringify(config.get());
-        }
-        sys.logs.debug('[googleDrive] Get property: '+property);
-        return config.get(property);
-    },
-
-    /**
-     * Concatenates a path with a param query and its value.
-     *
-     * @param path                          - The path to concatenate.
-     * @param key                           - The name of the param.
-     * @param value                         - The value of the param.
-     * @returns {string}                    - The concatenated path without coding parameters.
-     */
-    concatQuery: function (path, key, value) {
-        return path + ((!path || path.indexOf('?') < 0) ? '?' : '&') + key + "=" + value;
-    },
-
-    /**
-     * Merges two JSON objects into a single object.
-     *
-     * @param {Object} json1 - The first JSON object to be merged.
-     * @param {Object} json2 - The second JSON object to be merged.
-     * @return {Object} - The merged JSON object.
-     */
-    mergeJSON: mergeJSON,
-};
-
-/**
- * Verifies the signature of the given body using the provided signature coded in sha1 or sha256.
- *
- * @param {string} body                 - The body to be verified.
- * @param {string} signature            - The signature to be checked.
- * @param {string} signature256         - The signature256 to be checked.
- * @return {boolean}                    - True if the signature is valid, false otherwise.
- */
-exports.utils.verifySignature = function (body, signature, signature256) {
-    sys.logs.info("[googledrive] Checking signature");
-    let verified = true;
-    let verified256 = true;
-    let secret = config.get("webhookSecret");
-    if (!body || body === "") {
-        sys.logs.warn("[googledrive] The body is null or empty");
-        return false;
-    }
-    if (!secret || secret === "" || !signature || signature === "" ||
-        !sys.utils.crypto.verifySignatureWithHmac(body, signature.replace("sha1=",""), secret, "HmacSHA1")) {
-        sys.logs.warn("[googledrive] Invalid signature sha1");
-        verified = false;
-    }
-    if (!secret || secret === "" ||  !signature256 ||!signature256 ||
-        !sys.utils.crypto.verifySignatureWithHmac(body, signature.replace("sha256=",""), secret, "HmacSHA256")) {
-        sys.logs.warn("[googledrive] Invalid signature sha 256");
-        verified256 = false;
-    }
-
-    return (verified || verified256);
-};
-
 /****************************************************
  Private helpers
  ****************************************************/
 
+/**
+ * Checks and formats HTTP options based on the provided path and options.
+ *
+ * - If `path` is an object, it is treated as the options object.
+ * - If `path` is a string and the options already contain properties such as `path`, `params`, or `body`,
+ *   the provided string is assigned to `options.path`.
+ * - Otherwise, a new options object is created with `path` as the URL path and the provided options as the body.
+ *
+ * @param {string|object} path - The request path as a string, or an options object.
+ * @param {object} [options={}] - The HTTP options or the body to be sent.
+ * @return {object} The formatted HTTP options.
+ */
 function checkHttpOptions (path, options) {
     options = options || {};
     if (!!path) {
@@ -322,11 +329,91 @@ function checkHttpOptions (path, options) {
     return options;
 }
 
+/**
+ * Checks if a given value is a plain object.
+ *
+ * This function returns true if `obj` is not falsy and its type string is "[object Object]".
+ *
+ * @param {*} obj - The value to check.
+ * @return {boolean} True if `obj` is a plain object, false otherwise.
+ */
 function isObject (obj) {
     return !!obj && stringType(obj) === '[object Object]'
 }
 
+/**
+ * A helper function that returns the type string of an object.
+ *
+ * This is a bound version of Object.prototype.toString, which can be used to determine the internal
+ * [[Class]] of an object. For example, calling stringType({}) will return "[object Object]".
+ *
+ * @param {*} obj - The object to determine the type of.
+ * @return {string} The type string of the object.
+ */
 let stringType = Function.prototype.call.bind(Object.prototype.toString)
+
+/**
+ * Infers the MIME type from a file name based on its extension.
+ *
+ * Supported extensions and corresponding MIME types:
+ * - .docx: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+ * - .odt: application/vnd.oasis.opendocument.text
+ * - .rtf: application/rtf
+ * - .pdf: application/pdf
+ * - .txt: text/plain
+ * - .zip: application/zip
+ * - .epub: application/epub+zip
+ * - .md: text/markdown
+ * - .xlsx: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+ * - .ods: application/x-vnd.oasis.opendocument.spreadsheet
+ * - .csv: text/csv
+ * - .tsv: text/tab-separated-values
+ * - .pptx: application/vnd.openxmlformats-officedocument.presentationml.presentation
+ * - .odp: application/vnd.oasis.opendocument.presentation
+ * - .jpg: image/jpeg
+ * - .png: image/png
+ * - .svg: image/svg+xml
+ * - .json: application/vnd.google-apps.script+json
+ * - .mp4: application/vnd.google-apps.vid
+ *
+ * @param {string} fileName - The name of the file from which to infer the MIME type.
+ * @return {string|null} The inferred MIME type, or null if the extension is not supported.
+ */
+function getMimeTypeFromFileName(fileName) {
+    if (!fileName) return null;
+    const extIndex = fileName.lastIndexOf('.');
+    if (extIndex === -1) return null; // No extension found
+    const extension = fileName.slice(extIndex).toLowerCase();
+    const mimeMap = {
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        '.odt': 'application/vnd.oasis.opendocument.text',
+        '.rtf': 'application/rtf',
+        '.pdf': 'application/pdf',
+        '.txt': 'text/plain',
+        '.zip': 'application/zip',
+        '.epub': 'application/epub+zip',
+        '.md': 'text/markdown',
+        '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        '.ods': 'application/x-vnd.oasis.opendocument.spreadsheet',
+        '.csv': 'text/csv',
+        '.tsv': 'text/tab-separated-values',
+        '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        '.odp': 'application/vnd.oasis.opendocument.presentation',
+        '.jpg': 'image/jpeg',
+        '.png': 'image/png',
+        '.svg': 'image/svg+xml',
+        '.json': 'application/vnd.google-apps.script+json',
+        '.mp4': 'application/vnd.google-apps.vid'
+    };
+    return mimeMap[extension] || null;
+}
+
+/****************************************************
+ Constants
+ ****************************************************/
+
+const API_URL = "https://www.googleapis.com/drive/v3";
+const UPLOAD_URL = "https://www.googleapis.com/upload/drive/v3/files";
 
 /****************************************************
  Configurator
@@ -345,16 +432,25 @@ let GoogleDrive = function (options) {
  ****************************************************/
 
 function setApiUri(options) {
-    let API_URL = config.get("GOOGLEDRIVE_API_BASE_URL");
     let url = options.path || "";
     options.url = API_URL + url;
-    sys.logs.debug('[googledrive] Set url: ' + options.path + "->" + options.url);
+    if (options.upload) {
+        options.url = UPLOAD_URL;
+        delete options.path;
+        delete options.upload;
+        sys.logs.debug('[googledrive] Set upload url');
+
+    } else {
+        sys.logs.debug('[googledrive] Set url: ' + options.path + "->" + options.url);
+    }
     return options;
 }
 
 function setRequestHeaders(options) {
     let headers = options.headers || {};
-    headers = mergeJSON(headers, {"Content-Type": "application/json"});
+    if (!headers["Content-Type"]) {
+        headers = mergeJSON(headers, {"Content-Type": "application/json"});
+    }
     options.headers = headers;
     return options;
 }
@@ -376,6 +472,55 @@ function setAuthorization(options) {
     });
     options.headers = headers;
     return options;
+}
+
+function getAccessTokenForAccount() {
+    const account = sys.context.getCurrentUserRecord().id();
+    sys.logs.info('[googledrive] Getting access token for account: ' + account);
+    let installationJson = sys.storage.get('installationInfo-googledrive-User-' + account) || {id: null};
+    let token = installationJson.token || null;
+    let expiration = installationJson.expiration || 0;
+    if (!!token || expiration < new Date()) {
+        sys.logs.info('[googledrive] Access token is expired or not found. Getting new token');
+        const res = httpService.post(
+            {
+                url: "https://oauth2.googleapis.com/token",
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: {
+                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                    assertion: getJsonWebToken()
+                }
+            });
+        token = res.access_token;
+        let expires_at = res.expires_in;
+        expiration = expires_at * 1000 +  + new Date().getTime();
+        installationJson = mergeJSON(installationJson, {"token": token, "expiration": expiration});
+        if (token === null || token === undefined || (typeof token === 'string' && token.trim() === '')) {
+            sys.logs.error("[googledrive] The access_token is null or empty");
+            return null;
+        }
+        sys.logs.info('[googledrive] Saving new token for account: ' + account);
+        sys.storage.put('installationInfo-googledrive-User-' + account, installationJson);
+    }
+    return token;
+}
+
+function getJsonWebToken() {
+    let currentTime = new Date().getTime();
+    let futureTime = new Date(currentTime + ( 10 * 60 * 1000)).getTime();
+    return sys.utils.crypto.jwt.generate(
+        {
+            iss: config.get("serviceAccountEmail"),
+            aud: "https://oauth2.googleapis.com/token",
+            scope: "https://www.googleapis.com/auth/drive",
+            iat: currentTime,
+            exp: futureTime
+        },
+        config.get("privateKey"),
+        "RS256"
+    )
 }
 
 function mergeJSON (json1, json2) {

@@ -5,8 +5,7 @@
         {
             "type": "service",
             "name": "http",
-            "version": "v1.7.0",
-            "instanceId": "shared"
+            "version": "v1.8.0"
         },
         {
             "type": "package",
@@ -115,6 +114,11 @@
             "type": "script",
             "namespace": "api",
             "path": "/scripts/api.js"
+        },
+        {
+            "type": "script",
+            "namespace": "utils",
+            "path": "/scripts/utils.js"
         },
         {
             "type": "listener",
