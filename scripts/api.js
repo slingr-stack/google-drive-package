@@ -449,7 +449,7 @@ function setAuthorization(options) {
         token = sys.storage.get('installationInfo-googledrive-User-'+sys.context.getCurrentUserRecord().id() + ' - access_token',{decrypt:true})
     } else {
         const account = config.get("serviceAccountEmail");
-        let tokenJson = sys.storage.get('installationInfo-googledrive-account-' +account) || {};
+        let tokenJson = sys.storage.get('installationInfo-googledrive-User-'+ account) || {};
         token = tokenJson.token
     }
     headers = mergeJSON(headers, {
