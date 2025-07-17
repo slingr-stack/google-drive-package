@@ -130,7 +130,8 @@ exports.removeAccessToken = function () {
  *
  * The MIME type of the file is automatically inferred from the fileName extension.
  * If the extension does not match any supported type, "application/octet-stream" is used by default.
- *
+ * XLS and XLSX files will be automatically converted by setting the Google Sheets MIME type,
+ * allowing the file to be exported later if needed.
  * Supported MIME Types by File Extension:
  *
  * | Document Type | Format                                             | MIME Type                                                              | File Extension |
@@ -143,13 +144,14 @@ exports.removeAccessToken = function () {
  * | Documents     | Web Page (HTML)                                    | application/zip                                                        | .zip           |
  * | Documents     | EPUB                                               | application/epub+zip                                                   | .epub          |
  * | Documents     | Markdown                                           | text/markdown                                                          | .md            |
- * | Spreadsheets  | Microsoft Excel                                    | application/vnd.openxmlformats-officedocument.spreadsheetml.sheet        | .xlsx          |
- * | Spreadsheets  | OpenDocument                                       | application/x-vnd.oasis.opendocument.spreadsheet                        | .ods           |
+ * | Spreadsheets  | Microsoft Excel                                    | application/vnd.openxmlformats-officedocument.spreadsheetml.sheet      | .xlsx          |
+ * | Spreadsheets  | Microsoft Excel (Legacy)                           | application/vnd.ms-excel                                               | .xls           |
+ * | Spreadsheets  | OpenDocument                                       | application/x-vnd.oasis.opendocument.spreadsheet                       | .ods           |
  * | Spreadsheets  | PDF                                                | application/pdf                                                        | .pdf           |
  * | Spreadsheets  | Web Page (HTML)                                    | application/zip                                                        | .zip           |
  * | Spreadsheets  | Comma-Separated Values (first sheet only)          | text/csv                                                               | .csv           |
  * | Spreadsheets  | Tab-Separated Values (first sheet only)            | text/tab-separated-values                                              | .tsv           |
- * | Presentations | Microsoft PowerPoint                               | application/vnd.openxmlformats-officedocument.presentationml.presentation| .pptx         |
+ * | Presentations | Microsoft PowerPoint                               | application/vnd.openxmlformats-officedocument.presentationml.presentation .pptx         |
  * | Presentations | ODP                                                | application/vnd.oasis.opendocument.presentation                        | .odp           |
  * | Presentations | PDF                                                | application/pdf                                                        | .pdf           |
  * | Presentations | Plain Text                                         | text/plain                                                             | .txt           |
@@ -173,7 +175,17 @@ exports.removeAccessToken = function () {
  * @return {object}               - The response of the POST request to upload the file.
  */
 exports.upload = function(fileId, fileName, parentFolderId, httpOptions, callbackData, callbacks) {
-    const mimeType = getMimeTypeFromFileName(fileName) || "application/octet-stream";
+    let detectedMimeType = getMimeTypeFromFileName(fileName) || "application/octet-stream";
+    let targetMimeType = detectedMimeType;
+  
+    // If the file is XLS or XLSX then use Google Sheets mimeType
+    if (
+      detectedMimeType === 'application/vnd.ms-excel' ||
+      detectedMimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ) {
+      targetMimeType = 'application/vnd.google-apps.spreadsheet';
+    }
+
     let options = {
         upload: true,
         headers: {
@@ -184,7 +196,7 @@ exports.upload = function(fileId, fileName, parentFolderId, httpOptions, callbac
         },
         body: {
             name: fileName || "fileName",
-            mimeType: mimeType,
+            mimeType: targetMimeType,
             parents: [
                 parentFolderId
             ]
@@ -197,7 +209,7 @@ exports.upload = function(fileId, fileName, parentFolderId, httpOptions, callbac
                     contentType: "application/json",
                     content: {
                         name: fileName || 'metadata',
-                        mimeType: mimeType,
+                        mimeType: targetMimeType,
                         parents: [
                             parentFolderId
                         ]
@@ -378,6 +390,7 @@ function getMimeTypeFromFileName(fileName) {
         '.epub': 'application/epub+zip',
         '.md': 'text/markdown',
         '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        '.xls': 'application/vnd.ms-excel',
         '.ods': 'application/x-vnd.oasis.opendocument.spreadsheet',
         '.csv': 'text/csv',
         '.tsv': 'text/tab-separated-values',
