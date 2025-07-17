@@ -128,96 +128,106 @@ exports.removeAccessToken = function () {
 /**
  * Sends an HTTP POST request to upload a file to Google Drive using a multipart upload.
  *
- * The MIME type of the file is automatically inferred from the fileName extension.
+ * The MIME type of the file is automatically inferred from the file extension.
  * If the extension does not match any supported type, "application/octet-stream" is used by default.
+ * XLS and XLSX files will be automatically converted by setting the Google Sheets MIME type,
+ * allowing the file to be exported later if needed.
  *
  * Supported MIME Types by File Extension:
  *
  * | Document Type | Format                                             | MIME Type                                                              | File Extension |
  * |---------------|----------------------------------------------------|------------------------------------------------------------------------|----------------|
- * | Documents     | Microsoft Word                                     | application/vnd.openxmlformats-officedocument.wordprocessingml.document| .docx          |
- * | Documents     | OpenDocument                                       | application/vnd.oasis.opendocument.text                                | .odt           |
- * | Documents     | Rich Text                                          | application/rtf                                                        | .rtf           |
- * | Documents     | PDF                                                | application/pdf                                                        | .pdf           |
- * | Documents     | Plain Text                                         | text/plain                                                             | .txt           |
- * | Documents     | Web Page (HTML)                                    | application/zip                                                        | .zip           |
- * | Documents     | EPUB                                               | application/epub+zip                                                   | .epub          |
- * | Documents     | Markdown                                           | text/markdown                                                          | .md            |
- * | Spreadsheets  | Microsoft Excel                                    | application/vnd.openxmlformats-officedocument.spreadsheetml.sheet        | .xlsx          |
+ * | Documents     | Microsoft Word                                     | application/vnd.openxmlformats-officedocument.wordprocessingml.document | .docx          |
+ * | Documents     | OpenDocument                                       | application/vnd.oasis.opendocument.text                                 | .odt           |
+ * | Documents     | Rich Text                                          | application/rtf                                                         | .rtf           |
+ * | Documents     | PDF                                                | application/pdf                                                         | .pdf           |
+ * | Documents     | Plain Text                                         | text/plain                                                              | .txt           |
+ * | Documents     | Web Page (HTML) ZIP                                | application/zip                                                         | .zip           |
+ * | Documents     | EPUB                                               | application/epub+zip                                                    | .epub          |
+ * | Documents     | Markdown                                           | text/markdown                                                           | .md            |
+ * | Spreadsheets  | Microsoft Excel                                    | application/vnd.openxmlformats-officedocument.spreadsheetml.sheet       | .xlsx          |
+ * | Spreadsheets  | Microsoft Excel (Legacy)                           | application/vnd.ms-excel                                                | .xls           |
  * | Spreadsheets  | OpenDocument                                       | application/x-vnd.oasis.opendocument.spreadsheet                        | .ods           |
- * | Spreadsheets  | PDF                                                | application/pdf                                                        | .pdf           |
- * | Spreadsheets  | Web Page (HTML)                                    | application/zip                                                        | .zip           |
- * | Spreadsheets  | Comma-Separated Values (first sheet only)          | text/csv                                                               | .csv           |
- * | Spreadsheets  | Tab-Separated Values (first sheet only)            | text/tab-separated-values                                              | .tsv           |
- * | Presentations | Microsoft PowerPoint                               | application/vnd.openxmlformats-officedocument.presentationml.presentation| .pptx         |
- * | Presentations | ODP                                                | application/vnd.oasis.opendocument.presentation                        | .odp           |
- * | Presentations | PDF                                                | application/pdf                                                        | .pdf           |
- * | Presentations | Plain Text                                         | text/plain                                                             | .txt           |
- * | Presentations | JPEG (first slide only)                            | image/jpeg                                                             | .jpg           |
- * | Presentations | PNG (first slide only)                             | image/png                                                              | .png           |
- * | Presentations | Scalable Vector Graphics (first slide only)        | image/svg+xml                                                          | .svg           |
- * | Drawings      | PDF                                                | application/pdf                                                        | .pdf           |
- * | Drawings      | JPEG                                               | image/jpeg                                                             | .jpg           |
- * | Drawings      | PNG                                                | image/png                                                              | .png           |
- * | Drawings      | Scalable Vector Graphics                           | image/svg+xml                                                          | .svg           |
- * | Apps Script   | JSON                                               | application/vnd.google-apps.script+json                                | .json          |
- * | Google Vids   | MP4                                                | application/vnd.google-apps.vid                                        | .mp4           |
+ * | Spreadsheets  | Comma-Separated Values                             | text/csv                                                                | .csv           |
+ * | Spreadsheets  | Tab-Separated Values                               | text/tab-separated-values                                               | .tsv           |
+ * | Presentations | Microsoft PowerPoint                               | application/vnd.openxmlformats-officedocument.presentationml.presentation | .pptx         |
+ * | Presentations | OpenDocument Presentation                          | application/vnd.oasis.opendocument.presentation                         | .odp           |
+ * | Presentations | PDF                                                | application/pdf                                                         | .pdf           |
+ * | Presentations | Plain Text                                         | text/plain                                                              | .txt           |
+ * | Presentations | JPEG (first slide only)                            | image/jpeg                                                              | .jpg           |
+ * | Presentations | PNG (first slide only)                             | image/png                                                               | .png           |
+ * | Presentations | Scalable Vector Graphics (first slide only)        | image/svg+xml                                                           | .svg           |
+ * | Drawings      | PDF                                                | application/pdf                                                         | .pdf           |
+ * | Drawings      | JPEG                                               | image/jpeg                                                              | .jpg           |
+ * | Drawings      | PNG                                                | image/png                                                               | .png           |
+ * | Drawings      | Scalable Vector Graphics                           | image/svg+xml                                                           | .svg           |
+ * | Apps Script   | JSON                                               | application/vnd.google-apps.script+json                                 | .json          |
+ * | Google Videos | MP4                                                | application/vnd.google-apps.vid                                         | .mp4           |
  *
  * @param {string} fileId         - The identifier of the file to be uploaded.
- * @param {string} fileName       - The name of the file, used to determine its MIME type from the extension.
+ * @param {string} fileName       - The name of the file. The extension is used to determine its MIME type.
  *                                  If not provided, "fileName" is used by default.
  * @param {string} parentFolderId - The identifier of the destination folder in Google Drive.
- * @param {object} httpOptions  - The options to be included in the GET request check http-service documentation.
- * @param {object} callbackData   - Additional data to be passed to the callback functions. [optional]
- * @param {object} callbacks      - The callback functions to be called upon completion of the upload request. [optional]
- * @return {object}               - The response of the POST request to upload the file.
+ * @param {object} httpOptions    - Additional HTTP options to include in the request. See http-service documentation.
+ * @param {object} callbackData   - Additional data to pass to the callback functions. [optional]
+ * @param {object} callbacks      - Callback functions to handle the response of the upload request. [optional]
+ * @returns {object}              - The response from the POST request to upload the file.
  */
 exports.upload = function(fileId, fileName, parentFolderId, httpOptions, callbackData, callbacks) {
-    const mimeType = getMimeTypeFromFileName(fileName) || "application/octet-stream";
-    let options = {
-        upload: true,
-        headers: {
-            "Content-Type": "multipart/related"
-        },
-        params: {
-            uploadType: "multipart"
-        },
-        body: {
-            name: fileName || "fileName",
-            mimeType: mimeType,
-            parents: [
-                parentFolderId
-            ]
-        },
-        settings: {
-            multipart: true,
-            parts: [
-                {
-                    type: 'other',
-                    contentType: "application/json",
-                    content: {
-                        name: fileName || 'metadata',
-                        mimeType: mimeType,
-                        parents: [
-                            parentFolderId
-                        ]
-                    }
-                },
-                {
-                    type: 'file',
-                    name: fileName || 'fileName',
-                    fileId: fileId
-                }
-            ]
-        }
-    };
-    if (httpOptions) {
-        options.headers = mergeJSON(options.headers, httpOptions.headers);
-        options.params = mergeJSON(options.params, httpOptions.params);
-        options.settings = mergeJSON(options.settings, httpOptions.settings);
+    let detectedMimeType = getMimeTypeFromFileName(fileName) || "application/octet-stream";
+    let targetMimeType = detectedMimeType;
+  
+    // If the file is XLS or XLSX then use Google Sheets mimeType
+    if (
+      detectedMimeType === 'application/vnd.ms-excel' ||
+      detectedMimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ) {
+      targetMimeType = 'application/vnd.google-apps.spreadsheet';
     }
+  
+    let options = {
+      upload: true,
+      headers: {
+        "Content-Type": "multipart/related"
+      },
+      params: {
+        uploadType: "multipart"
+      },
+      body: {
+        name: fileName || "fileName",
+        mimeType: targetMimeType,
+        parents: [ parentFolderId ]
+      },
+      settings: {
+        multipart: true,
+        parts: [
+          {
+            type: 'other',
+            contentType: "application/json",
+            content: {
+              name: fileName || 'metadata',
+              mimeType: targetMimeType,
+              parents: [ parentFolderId ]
+            }
+          },
+          {
+            type: 'file',
+            name: fileName || 'fileName',
+            fileId: fileId
+          }
+        ]
+      }
+    };
+  
+    if (httpOptions) {
+      options.headers = mergeJSON(options.headers, httpOptions.headers);
+      options.params = mergeJSON(options.params, httpOptions.params);
+      options.settings = mergeJSON(options.settings, httpOptions.settings);
+    }
+  
     return httpService.post(GoogleDrive(options), callbackData, callbacks);
-};
+  };
+  
 
 /**
  * Sends an HTTP GET request to the specified URL with the provided HTTP options.
@@ -378,6 +388,7 @@ function getMimeTypeFromFileName(fileName) {
         '.epub': 'application/epub+zip',
         '.md': 'text/markdown',
         '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        '.xls': 'application/vnd.ms-excel',
         '.ods': 'application/x-vnd.oasis.opendocument.spreadsheet',
         '.csv': 'text/csv',
         '.tsv': 'text/tab-separated-values',
