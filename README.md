@@ -160,6 +160,12 @@ try {
 }
 ```
 
+If the destination Drive is a **Shared Drive** (Google Workspace Shared Drive), you **must** include:
+```js
+params: {
+  supportsAllDrives: "true"
+}
+
 ### Subscribes to file changes.
 
 ```javascript
