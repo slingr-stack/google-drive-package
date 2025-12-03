@@ -98,8 +98,7 @@ function mergeJSON (json1, json2) {
  */
 exports.getAccessToken = function () {
     if (config.get("authenticationMethod") === 'serviceAccount') {
-        const installationInfo = sys.storage.get('installationInfo-googledrive-User-'+ config.get("serviceAccountEmail"));
-        return installationInfo !== null && installationInfo !== undefined ? installationInfo.token : getAccessTokenForAccount();
+        return getAccessTokenForAccount();
     }
     sys.logs.info("[googledrive] Getting access token from oauth");
     return dependencies.oauth.functions.connectUser('googledrive:userConnected');
